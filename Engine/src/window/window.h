@@ -22,10 +22,11 @@ namespace zeus
 		virtual void ProcessEvents() = 0;
 		virtual float GetTime() = 0;
 		virtual bool ShouldClose() = 0;
-		virtual void* GetNativeWindow();
+		virtual void* GetNativeWindow() = 0;
 		virtual void TerminateWindow() = 0;
 		virtual void VSyncEnable(bool enabled) = 0;
 		virtual void SetWindowTitle(const std::string& title) = 0;
+		virtual void SetCameraMode(bool enabled) = 0;
 
 		static std::shared_ptr<Window> GetWindow();
 	};

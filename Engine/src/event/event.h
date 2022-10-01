@@ -8,9 +8,13 @@ namespace zeus
 	{
 		None,
 
-		MousePressed, MouseReleased,MouseMoved,
+		MousePressed,
+		MouseReleased,
+		MouseMoved,
+		MouseScrolled,
 
-		KeyPressed, KeyReleased
+		KeyPressed,
+		KeyReleased
 	};
 
 	class Event

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/texture.h"
+#include "util/texture.h"
 
 namespace zeus
 {
@@ -9,7 +9,8 @@ namespace zeus
 	public:
 		OpenGLTexture(const std::string& filepath);
 
-		void Bind(uint32_t slot = 0) const override;
+		void Bind(uint32_t slot = 0) override;
 		void Unbind() const override;
+		uint32_t GetTextureSlotsCount() const override;
 	};
 }

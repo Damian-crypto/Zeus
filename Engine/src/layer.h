@@ -30,6 +30,7 @@ namespace zeus
 	public:
 		Layer() = default;
 		Layer(const char* name);
+		virtual ~Layer() {}
 
 		virtual void OnUpdate(float dt) = 0;
 		virtual void OnRender() = 0;

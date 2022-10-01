@@ -4,6 +4,7 @@
 #include "layer_queue.h"
 #include "window/window.h"
 #include "glm/glm.hpp"
+#include "util/imgui_ui.h"
 
 namespace zeus
 {
@@ -19,6 +20,7 @@ namespace zeus
 	private:
 		// Private fields
 		std::shared_ptr<Window> m_Window;
+		std::shared_ptr<ImGUI> m_ImGui;
 		ApplicationProperties m_Properties;
 		LayerQueue m_LayerQueue;
 		float m_DeltaTime = 0.0f;
@@ -28,6 +30,7 @@ namespace zeus
 		static Application* s_Instance;
 
 	public:
+		//Application();
 		Application(ApplicationProperties props);
 		~Application();
 

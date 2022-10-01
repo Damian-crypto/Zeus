@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WINDOWING_SYSTEM_GLFW;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(SolutionDir)vendor\glad\include;$(SolutionDir)vendor\glm\include;$(SolutionDir)vendor\stb_image\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\glm\include;$(ProjectDir)vendor\stb_image\include;$(ProjectDir)vendor\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -129,7 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WINDOWING_SYSTEM_GLFW;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(SolutionDir)vendor\glad\include;$(SolutionDir)vendor\glm\include;$(SolutionDir)vendor\stb_image\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\glm\include;$(ProjectDir)vendor\stb_image\include;$(ProjectDir)vendor\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\util\imgui_ui.h" />
+    <ClInclude Include="src\util\camera.h" />
     <ClInclude Include="src\renderer\opengl\opengl_texture.h" />
     <ClInclude Include="src\renderer\renderer_constants.h" />
     <ClInclude Include="src\renderer\shader.h" />
@@ -149,6 +151,17 @@
     <ClInclude Include="src\renderer\render_command.h" />
     <ClInclude Include="src\renderer\opengl\opengl_renderer.h" />
     <ClInclude Include="src\renderer\renderer.h" />
+    <ClInclude Include="vendor\glad\include\glad\gl.h" />
+    <ClInclude Include="vendor\glad\include\KHR\khrplatform.h" />
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\imgui\imconfig.h" />
+    <ClInclude Include="vendor\imgui\imgui.h" />
+    <ClInclude Include="vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
+    <ClInclude Include="vendor\stb_image\include\stb\stb_image.h" />
     <ClInclude Include="src\window\window.h" />
     <ClInclude Include="src\window\windows_window.h" />
     <ClInclude Include="src\layer.h" />
@@ -158,9 +171,11 @@
     <ClInclude Include="src\core.h" />
     <ClInclude Include="src\include\zeus.h" />
     <ClInclude Include="src\window\window_constants.h" />
-    <ClInclude Include="src\utils\texture.h" />
+    <ClInclude Include="src\util\texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\util\imgui_ui.cpp" />
+    <ClCompile Include="src\util\camera.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_shader.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_shader.h" />
@@ -170,8 +185,15 @@
     <ClCompile Include="src\renderer\render_command.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_renderer.cpp" />
     <ClCompile Include="src\renderer\renderer.cpp" />
-    <ClCompile Include="src\gl.cpp" />
-    <ClCompile Include="src\stb_image.cpp" />
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\imgui\imgui.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="vendor\stb_image\include\stb\stb_image.cpp" />
+    <ClCompile Include="vendor\glad\src\gl.c" />
     <ClCompile Include="src\window\input.cpp" />
     <ClCompile Include="src\window\input.h" />
     <ClCompile Include="src\window\window.cpp" />
@@ -180,7 +202,7 @@
     <ClCompile Include="src\event\event.cpp" />
     <ClCompile Include="src\layer_queue.cpp" />
     <ClCompile Include="src\application.cpp" />
-    <ClCompile Include="src\utils\texture.cpp" />
+    <ClCompile Include="src\util\texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dependency\glfw\src\glfw.vcxproj">

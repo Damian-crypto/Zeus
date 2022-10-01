@@ -2,6 +2,7 @@
 
 #include "stb/stb_image.h"
 #include "glad/gl.h"
+#include "renderer/renderer.h"
 
 namespace zeus
 {
@@ -56,8 +57,15 @@ namespace zeus
 		stbi_image_free(data);
 	}
 
-	void OpenGLTexture::Bind(uint32_t slot) const
+	void OpenGLTexture::Bind(uint32_t slot)
 	{
+		uint32_t slotsCount = GetTextureSlotsCount();
+		if (slotsCount <= slot)
+		{
+			throw std::runtime_error("Runtime Error: Your gpu has only " + std::to_string(slotsCount) + " texture slots!");
+		}
+
+		m_TextureSlot = slot;
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, m_TextureID);
 	}
@@ -65,5 +73,13 @@ namespace zeus
 	void OpenGLTexture::Unbind() const
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	uint32_t OpenGLTexture::GetTextureSlotsCount() const
+	{
+		int texSlots = 0;
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texSlots);
+
+		return (uint32_t)texSlots;
 	}
 }

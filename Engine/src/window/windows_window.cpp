@@ -74,6 +74,11 @@ namespace zeus
 			MouseMovedEvent evt((float)x, (float)y);
 			Application::GetInstance()->OnEvent(evt);
 		});
+
+		glfwSetScrollCallback(m_NativeWindow, [](GLFWwindow* window, double x, double y) {
+			MouseScrolledEvent evt((float)x, (float)y);
+			Application::GetInstance()->OnEvent(evt);
+		});
 	}
 
 	void WindowsWindow::SwapBuffers()
@@ -123,5 +128,13 @@ namespace zeus
 	void WindowsWindow::SetWindowTitle(const std::string& title)
 	{
 		glfwSetWindowTitle(m_NativeWindow, title.c_str());
+	}
+
+	void WindowsWindow::SetCameraMode(bool enabled)
+	{
+		if (enabled)
+			glfwSetInputMode(m_NativeWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		else
+			glfwSetInputMode(m_NativeWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 }

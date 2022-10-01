@@ -29,13 +29,16 @@ namespace zeus
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndexCount * sizeof(uint32_t), m_IndexData, GL_STATIC_DRAW);
 		
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (const void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)0);
 		
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (const void*)(3 * sizeof(float)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)(3 * sizeof(float)));
 
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (const void*)(7 * sizeof(float)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)(7 * sizeof(float)));
+
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)(9 * sizeof(float)));
 
 		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		//glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -49,6 +52,11 @@ namespace zeus
 		GLValidate(glDrawElements(GL_TRIANGLES, m_IndexCount, GL_UNSIGNED_INT, 0));
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	void OpenGLRenderer::BindTextureUnit(uint32_t slot, uint32_t texId)
+	{
+		glBindTextureUnit(slot, texId);
 	}
 
 	void OpenGLRenderer::ReplaceVertexData(uint32_t count, const float* vertices)
@@ -88,12 +96,12 @@ namespace zeus
 		}
 	}
 
-	void OpenGLRenderer::ClearBuffers()
+	void OpenGLRenderer::ClearBuffers() const
 	{
 		glClear(m_Buffers);
 	}
 
-	void OpenGLRenderer::ClearColor(float r, float g, float b, float a)
+	void OpenGLRenderer::ClearColor(float r, float g, float b, float a) const
 	{
 		glClearColor(r, g, b, a);
 	}

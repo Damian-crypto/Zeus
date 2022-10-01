@@ -27,4 +27,16 @@ namespace zeus
 
 		glm::vec2 GetMousePosition();
 	};
+
+	class MouseScrolledEvent : public Event
+	{
+	protected:
+		float m_Xoffset;
+		float m_Yoffset;
+
+	public:
+		MouseScrolledEvent(float x, float y);
+
+		glm::vec2 GetMouseScroll();
+	};
 }

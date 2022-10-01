@@ -24,5 +24,6 @@ namespace zeus
 		void TerminateWindow() override;
 		void VSyncEnable(bool active) override;
 		void SetWindowTitle(const std::string& title) override;
+		void SetCameraMode(bool enabled) override;
 	};
 }

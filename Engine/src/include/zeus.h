@@ -9,4 +9,5 @@
 #include "..\window\input.h"
 #include "..\renderer\shader.h"
 #include "..\window\window_constants.h"
-#include "..\utils\texture.h"
+#include "..\util\texture.h"
+#include "..\util\camera.h"

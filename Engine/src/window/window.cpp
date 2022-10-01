@@ -6,11 +6,6 @@
 
 namespace zeus
 {
-    void* Window::GetNativeWindow()
-    {
-        return nullptr;
-    }
-
     std::shared_ptr<Window> Window::GetWindow()
     {
 #ifdef WINDOWING_SYSTEM_GLFW

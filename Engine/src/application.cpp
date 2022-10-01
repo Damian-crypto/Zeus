@@ -7,14 +7,15 @@ namespace zeus
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application(ApplicationProperties props)
-		: m_Properties(props)
 	{
 		if (s_Instance != nullptr)
 		{
 			throw std::runtime_error("Application already exists!");
 		}
 
+		m_ImGui = std::make_shared<ImGUI>();
 		s_Instance = this;
+		s_Instance->m_Properties = props;
 	}
 
 	void Application::OnEvent(Event& evt)
@@ -40,6 +41,7 @@ namespace zeus
 		m_Window = Window::GetWindow();
 		m_Window->CreateWindow({ m_Properties.Title, m_Properties.Width, m_Properties.Height });
 		m_Window->VSyncEnable(true);
+		m_ImGui->Init();
 	}
 
 	void Application::Run()
@@ -58,15 +60,18 @@ namespace zeus
 			m_Window->SetWindowTitle(m_Properties.Title + "|" + std::to_string((int)m_DeltaTime) + " FPS");
 			m_Window->ProcessEvents();
 
+			m_ImGui->Begin();
 			for (Layer* layer : m_LayerQueue)
 			{
 				layer->OnUpdate(m_DeltaTime);
 				layer->OnRender();
 			}
+			m_ImGui->End();
 
 			m_Window->SwapBuffers();
 		}
 
+		m_ImGui->Destroy();
 		m_Window->TerminateWindow();
 	}
 

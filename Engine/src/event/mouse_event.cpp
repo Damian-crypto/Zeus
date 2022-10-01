@@ -23,4 +23,15 @@ namespace zeus
 	{
 		return { m_Xpos, m_Ypos };
 	}
+
+	MouseScrolledEvent::MouseScrolledEvent(float x, float y)
+		: m_Xoffset(x), m_Yoffset(y)
+	{
+		m_Type = EventType::MouseScrolled;
+	}
+
+	glm::vec2 MouseScrolledEvent::GetMouseScroll()
+	{
+		return { m_Xoffset, m_Yoffset };
+	}
 }
