@@ -20,7 +20,7 @@ static const struct DefaultOrthographicCamera
 	glm::vec3 Position = { -WIDTH / 2.0f, -HEIGHT / 2.0f, 0.0f };
 	glm::vec3 Direction = { 0.0f, 0.0f, -1.0f };
 	glm::vec3 Right = { 0.0f, 0.0f, 0.0f };
-	float MovementSpeed = 0.3f;
+	float MovementSpeed = 30.0f;
 } defaultOrthoCamera;
 
 static const struct DefaultPerspectiveCamera
@@ -37,7 +37,7 @@ class SandboxLayer : public zeus::Layer
 private:
 	std::string m_Name;
 
-	glm::vec3 m_BoxPos{ 0.0f };
+	glm::vec3 m_SpritePos{ 0.0f, 0.0f, 0.1f };
 
 	bool m_Keys[65536] = { false };
 	bool m_CameraMode = false;
@@ -45,10 +45,8 @@ private:
 	std::mt19937 mt;
 	std::uniform_int_distribution<int> dist{ 0, 255 };
 
-	std::shared_ptr<zeus::Texture> m_WoodTex;
-	std::shared_ptr<zeus::Texture> m_WindowTex;
-
 	std::shared_ptr<zeus::Camera> m_Camera;
+	std::shared_ptr<zeus::TextureManager> m_TexManager;
 
 public:
 	SandboxLayer(const char* name)
@@ -58,10 +56,11 @@ public:
 		m_Camera->GetProperties().Position = defaultOrthoCamera.Position;
 		m_Camera->GetProperties().MovementSpeed = defaultOrthoCamera.MovementSpeed;
 
-		m_WoodTex = zeus::Texture::CreateTexture("assets/textures/wood.png");
-		m_WoodTex->Bind(0);
-		m_WindowTex = zeus::Texture::CreateTexture("assets/textures/window.png");
-		m_WindowTex->Bind(1);
+		m_TexManager = zeus::TextureManager::GetInstance();
+		m_TexManager->PutTexture({ "wood_tex", "assets/textures/wood.png" });
+		m_TexManager->PutTexture({ "window_tex", "assets/textures/window.png" });
+		m_TexManager->PutSpritesheet({ "person_sheet", "assets/textures/tilemap_packed.png", 16, true });
+		m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/roguelike_spritesheet.png", 17, true });
 
 		zeus::Renderer::Init();
 		zeus::Renderer::SetBackgroundColor(GREY);
@@ -73,7 +72,7 @@ public:
 	{
 	}
 
-	float speed = 0.1f, lastX = WIDTH / 2.0f, lastY = HEIGHT / 2.0f;
+	float speed = 2.5f, lastX = WIDTH / 2.0f, lastY = HEIGHT / 2.0f;
 	bool firstMove = true, lockZoom = true;
 	void OnUpdate(float dt) override
 	{
@@ -126,19 +125,19 @@ public:
 		{
 			if (m_Keys[KEY_A])
 			{
-				m_BoxPos.x -= speed * dt;
+				m_SpritePos.x -= speed;
 			}
 			if (m_Keys[KEY_D])
 			{
-				m_BoxPos.x += speed * dt;
+				m_SpritePos.x += speed;
 			}
 			if (m_Keys[KEY_W])
 			{
-				m_BoxPos.y += speed * dt;
+				m_SpritePos.y += speed;
 			}
 			if (m_Keys[KEY_S])
 			{
-				m_BoxPos.y -= speed * dt;
+				m_SpritePos.y -= speed;
 			}
 		}
 	}
@@ -182,14 +181,42 @@ public:
 		}
 	}
 
-	bool showDemo = true;
 	float zVal = 0.0f, angle = 0.0f;
-	glm::vec3 scaler{ 20.0f, 20.0f, 0.0f };
+	glm::vec3 scaler{ 50.0f, 50.0f, 0.0f };
+	int texX = 24, texY = 18;
 	void OnRender() override
 	{
 		zeus::Renderer::Start(m_Camera);
 
+		RenderUI();
+
+		zeus::Renderer::DrawTexturedQuad({ 0.0f, 0.0f, 0.0f }, { 20.0f, 20.0f, 0.0f }, m_TexManager->GetTexture("wood_tex"));
+		for (int y = 0; y < 256; y += 32)
+		{
+			for (int x = 0; x < 256; x += 32)
+			{
+				zeus::Renderer::DrawTexturedQuad({ x, y, 0 }, { 16, 16, 0 }, m_TexManager->GetSubTexture("building_sheet", 11, 1));
+				//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
+			}
+		}
+		zeus::Renderer::DrawTexturedQuad(m_SpritePos, scaler, m_TexManager->GetSubTexture("person_sheet", texX, texY));
+
+		zeus::Renderer::Flush(m_TexManager);
+	}
+
+	bool showDemo = true;
+	void RenderUI()
+	{
 		ImGui::ShowDemoWindow(&showDemo);
+
+		ImGui::Begin("Renderer Info");
+		{
+			ImGui::Text("Maximum texture slots supported: %d", zeus::TextureManager::GetTextureMaxSlotsCount());
+			const auto& stat = zeus::Renderer::GetRendererStat();
+			ImGui::Text("Quads drawn: %d / %d", stat.QuadsDrawn, zeus::Renderer::MaxQuads);
+			ImGui::Text("Draw calls: %d", stat.DrawCalls);
+			ImGui::End();
+		}
 
 		ImGui::Begin("Camera Properties");
 		{
@@ -199,7 +226,7 @@ public:
 			ImGui::SameLine();
 			ImGui::Checkbox("lock zoom", &lockZoom);
 
-			ImGui::DragFloat("speed", &cam.MovementSpeed, 0.001f);
+			ImGui::DragFloat("speed", &cam.MovementSpeed);
 			ImGui::DragFloat3("position", glm::value_ptr(cam.Position));
 			ImGui::DragFloat3("looking at", glm::value_ptr(cam.Direction));
 			ImGui::DragFloat3("right", glm::value_ptr(cam.Right));
@@ -230,7 +257,7 @@ public:
 
 			ImGui::Checkbox("camera mode", &m_CameraMode);
 			zeus::Application::GetInstance()->GetWindow()->SetCameraMode(m_CameraMode);
-			
+
 			if (ImGui::Button("Reset"))
 			{
 				ResetCamera(cam.Type);
@@ -241,10 +268,13 @@ public:
 
 		ImGui::Begin("Textured Quad Handle");
 		{
-			ImGui::DragFloat2("box position", glm::value_ptr(m_BoxPos), 0.1f);
-			ImGui::DragFloat("box depth value", &m_BoxPos.z, 0.01f, -1.0f, 1.0f);
+			int step = 1;
+			ImGui::InputScalar("index x", ImGuiDataType_S32, &texX, &step, NULL, "%d");
+			ImGui::InputScalar("index y", ImGuiDataType_S32, &texY, &step, NULL, "%d");
+			ImGui::DragFloat2("box position", glm::value_ptr(m_SpritePos), 0.1f);
+			ImGui::DragFloat("box depth value", &m_SpritePos.z, 0.01f, -1.0f, 1.0f);
 			ImGui::DragFloat("angle", &angle);
-			ImGui::DragFloat3("scale", glm::value_ptr(scaler), 0.01f);
+			ImGui::DragFloat3("scale", glm::value_ptr(scaler));
 			ImGui::End();
 		}
 
@@ -254,17 +284,6 @@ public:
 			ImGui::Text("cursor position: %f, %f", mouseX, mouseY);
 			ImGui::End();
 		}
-
-		zeus::Renderer::DrawTexturedQuad(m_BoxPos, scaler, m_WoodTex, angle);
-		for (float y = 20; y <= 460.0f; y += 40.0f)
-		{
-			for (float x = 20; x <= 620.0f; x += 40.0f)
-			{
-				zeus::Renderer::DrawTexturedQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, m_WindowTex);
-				//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
-			}
-		}
-		zeus::Renderer::Flush();
 	}
 
 	void OnEvent(zeus::Event& evt) override
@@ -335,7 +354,7 @@ int main()
 {
 	try
 	{
-		auto app = new zeus::Application({ "Village game", WIDTH, HEIGHT });
+		auto app = new zeus::Application({ "Sandbox", WIDTH, HEIGHT });
 		app->Init();
 		app->PushLayer(new SandboxLayer("sandbox"));
 		app->Run();

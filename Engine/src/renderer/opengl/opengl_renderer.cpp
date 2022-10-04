@@ -54,11 +54,6 @@ namespace zeus
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void OpenGLRenderer::BindTextureUnit(uint32_t slot, uint32_t texId)
-	{
-		glBindTextureUnit(slot, texId);
-	}
-
 	void OpenGLRenderer::ReplaceVertexData(uint32_t count, const float* vertices)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);

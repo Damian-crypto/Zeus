@@ -8,9 +8,11 @@ namespace zeus
 	{
 	public:
 		OpenGLTexture(const std::string& filepath);
+		~OpenGLTexture();
 
 		void Bind(uint32_t slot = 0) override;
 		void Unbind() const override;
-		uint32_t GetTextureSlotsCount() const override;
+		void Activate() override;
+		static uint32_t GetTextureSlotsCount();
 	};
 }

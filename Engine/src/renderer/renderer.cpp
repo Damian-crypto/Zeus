@@ -8,6 +8,7 @@
 #include "renderer_constants.h"
 #include "opengl/opengl_renderer.h"
 #include "util/camera.h"
+#include "util/texture_manager.h"
 #include "application.h"
 
 const char* vertexSource = R"(
@@ -38,20 +39,25 @@ void main()
 const char* fragmentSource = R"(
 #version 450
 
-layout (location = 0) out vec4 aColor;
+layout (location = 0) out vec4 a_Color;
 
 in vec4 f_Color;
 in vec2 f_TexCoord;
 in float f_TexId;
 
-uniform sampler2D u_Textures[2];
+uniform sampler2D u_Textures[8];
 
 void main()
 {
 	int texIndex = int(f_TexId);
-	aColor = texture(u_Textures[texIndex], f_TexCoord);
-	//aColor = vec4(vec3(gl_FragCoord.z), 1.0f);
-	//aColor = f_Color;
+	if (texIndex == -1.0)
+	{
+		a_Color = f_Color;
+	}
+	else
+	{
+		a_Color = texture(u_Textures[texIndex], f_TexCoord) * f_Color;
+	}
 }
 )";
 
@@ -72,11 +78,12 @@ namespace zeus
 		std::shared_ptr<Shader> SquareShader;
 
 		std::vector<glm::vec4> QuadVertices;
-		std::vector<glm::vec2> TextureIndices;
+		std::vector<glm::vec2> TextureCoordinates;
 
 		uint32_t NextVertex		= 0;
 		uint32_t RendererState	= 0;
-		std::vector<int> TextureSlots;
+
+		RendererStatistics RendererStat;
 	};
 
 	static RenderData s_RenderData;
@@ -90,12 +97,14 @@ namespace zeus
 			{ -1.0f,  1.0f, 0.0f, 1.0f }
 		};
 
-		s_RenderData.TextureIndices = {
-			{ 0.0f, 0.0f },
-			{ 1.0f, 0.0f },
-			{ 1.0f, 1.0f },
-			{ 0.0f, 1.0f }
-		};
+		//s_RenderData.TextureCoordinates = {
+		//	{ 0.0f, 0.0f },
+		//	{ 1.0f, 0.0f },
+		//	{ 1.0f, 1.0f },
+		//	{ 0.0f, 1.0f }
+		//};
+
+		s_RenderData.TextureCoordinates = std::vector<glm::vec2>(4, glm::vec2(1.0f));
 
 		s_RenderData.Indices = new uint32_t[MaxIndices]{ 0 };
 
@@ -148,6 +157,7 @@ namespace zeus
 	{
 		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
 		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
+		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
 		for (int i = 0; i < 4; i++)
 		{
 			glm::vec4 vertex = transform * scale * s_RenderData.QuadVertices[i];
@@ -160,14 +170,17 @@ namespace zeus
 			s_RenderData.Vertices[s_RenderData.NextVertex++] = color.b;
 			s_RenderData.Vertices[s_RenderData.NextVertex++] = color.a;
 
-			s_RenderData.NextVertex += 3;
+			s_RenderData.NextVertex += 2;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = -1.0f; // tex index -1 means it is a color
 		}
+
+		s_RenderData.RendererStat.QuadsDrawn++;
 	}
 
 	void Renderer::DrawTexturedQuad(const glm::vec3& pos, const glm::vec3& size, const std::shared_ptr<Texture> tex, float angle, const glm::vec4& tint)
 	{
-		s_RenderData.TextureSlots.push_back((int)tex->GetTextureSlot());
-		s_RenderCommand->BindTextureUnit(tex->GetTextureSlot(), tex->GetTextureID());
+		tex->Activate();
+		s_RenderData.TextureCoordinates = tex->GetTexCoords();
 		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
 		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
 		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -183,25 +196,28 @@ namespace zeus
 			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.b;
 			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.a;
 
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureIndices[i].x;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureIndices[i].y;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].x;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].y;
 			s_RenderData.Vertices[s_RenderData.NextVertex++] = (float)tex->GetTextureSlot();
 		}
+
+		s_RenderData.RendererStat.QuadsDrawn++;
 	}
 
-	void Renderer::Flush()
+	void Renderer::Flush(const std::shared_ptr<TextureManager> texManager)
 	{
 		s_RenderData.SquareShader->Bind();
 		s_RenderData.SquareShader->UploadUniformMat4("u_Model", s_RenderData.Model);
 		s_RenderData.SquareShader->UploadUniformMat4("u_View", s_RenderData.View);
 		s_RenderData.SquareShader->UploadUniformMat4("u_Projection", s_RenderData.Projection);
 
-		s_RenderData.SquareShader->UploadUniformIntArray("u_Textures", s_RenderData.TextureSlots.data(), (uint32_t)s_RenderData.TextureSlots.size());
+		s_RenderData.SquareShader->UploadUniformIntArray("u_Textures", texManager->GetTextureSlotData().data(), (uint32_t)texManager->GetTextureSlotData().size());
 		s_RenderCommand->Draw();
 		s_RenderData.SquareShader->Unbind();
 		memset(s_RenderData.Vertices, 0, s_RenderData.NextVertex * sizeof(float));
 		s_RenderData.NextVertex = 0;
-		s_RenderData.TextureSlots.clear();
+
+		s_RenderData.RendererStat.DrawCalls++;
 	}
 
 	void Renderer::SetPolygonMode(bool enabled)
@@ -237,5 +253,12 @@ namespace zeus
 	void Renderer::SetBackgroundColor(const glm::vec4& color)
 	{
 		s_BackgroundColor = color;
+	}
+
+	RendererStatistics Renderer::GetRendererStat()
+	{
+		RendererStatistics tmp = s_RenderData.RendererStat;
+		memset(&s_RenderData.RendererStat, 0, sizeof(RendererStatistics));
+		return tmp;
 	}
 }

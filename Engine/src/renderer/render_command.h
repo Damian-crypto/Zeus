@@ -11,7 +11,6 @@ namespace zeus
 		virtual void Draw() = 0;
 		virtual void ClearBuffers() const = 0;
 		virtual void ClearColor(float r, float g, float b, float a) const = 0;
-		virtual void BindTextureUnit(uint32_t slot, uint32_t texId) = 0;
 
 		virtual void SetState(uint32_t flag) = 0;
 	};

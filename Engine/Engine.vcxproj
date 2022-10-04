@@ -151,6 +151,7 @@
     <ClInclude Include="src\renderer\render_command.h" />
     <ClInclude Include="src\renderer\opengl\opengl_renderer.h" />
     <ClInclude Include="src\renderer\renderer.h" />
+    <ClInclude Include="src\util\texture_manager.h" />
     <ClInclude Include="vendor\glad\include\glad\gl.h" />
     <ClInclude Include="vendor\glad\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
@@ -185,6 +186,7 @@
     <ClCompile Include="src\renderer\render_command.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_renderer.cpp" />
     <ClCompile Include="src\renderer\renderer.cpp" />
+    <ClCompile Include="src\util\texture_manager.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />

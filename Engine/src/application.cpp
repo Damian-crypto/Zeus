@@ -54,10 +54,10 @@ namespace zeus
 		while (m_Running != false && m_Window->ShouldClose() != true)
 		{
 			currentTime = m_Window->GetTime();
-			m_DeltaTime = 1.0f / (float)(currentTime - lastTime);
+			m_DeltaTime = (currentTime - lastTime);
 			lastTime = currentTime;
 
-			m_Window->SetWindowTitle(m_Properties.Title + "|" + std::to_string((int)m_DeltaTime) + " FPS");
+			m_Window->SetWindowTitle(m_Properties.Title + "|" + std::to_string(int(1.0f / m_DeltaTime)) + " FPS");
 			m_Window->ProcessEvents();
 
 			m_ImGui->Begin();
