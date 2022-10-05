@@ -1,16 +1,20 @@
 #include "game_layer.h"
 
 #include "imgui.h"
+#include "glm/gtc/type_ptr.hpp"
 
 GameLayer::GameLayer(const char* name)
 {
 	m_Camera = std::make_shared<zeus::Camera>();
-	m_Camera->GetProperties().Position = { -WIDTH / 2.0f, -HEIGHT / 2.0f, 0.0f };
+	m_Camera->GetProperties().Position = { 32.0f, 32.0f, 0.0f };
 	m_Camera->GetProperties().MovementSpeed = 85.0f;
 
 	m_TexManager = zeus::TextureManager::GetInstance();
 	m_TexManager->PutSpritesheet({ "person_sheet", "assets/textures/spritesheets/tilemap_packed.png", 16, true });
 	m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/spritesheets/roguelike_spritesheet.png", 17, true });
+
+	m_CharacterPos = { WIDTH / 2, HEIGHT / 2, 0.1f };
+	m_CharacterSprite = { 0.0f, 0.0f, 2.0f };
 
 	zeus::Renderer::Init();
 	zeus::Renderer::SetBackgroundColor(GREY);
@@ -49,30 +53,44 @@ void GameLayer::OnEvent(zeus::Event& evt)
 	dispatcher.Dispatch(zeus::EventType::KeyReleased, keyReleased);
 }
 
-glm::vec2 platformPos{ 0.0f, 0.0f };
+vec2i platformPos{ 0, 0 };
 void GameLayer::OnRender()
 {
 	zeus::Renderer::Start(m_Camera);
 
-	for (int x = 0; x <= 256; x += 32)
+	for (int x = 0; x <= 1152; x += 64)
 	{
-		for (int y = 0; y <= 256; y += 32)
+		for (int y = 0; y <= 768; y += 64)
 		{
-			zeus::Renderer::DrawTexturedQuad({ platformPos.x + x, platformPos.y + y, 0.0f }, { 16, 16, 0 }, m_TexManager->GetSubTexture("building_sheet", 0, 0));
+			int xx = 0, yy = 0;
+			if (platformPos.x + x > 0)
+				xx = (platformPos.x + x) % 1152;
+			else
+				xx = platformPos.x + 1152 + x;
+
+			if (platformPos.y + y > 0)
+				yy = (platformPos.y + y) % 768;
+			else
+				yy = platformPos.y + 768 + y;
+
+			zeus::Renderer::DrawTexturedQuad({ (float)xx, (float)yy, 0.0f}, { 32, 32, 0 }, m_TexManager->GetSubTexture("building_sheet", 0, 0));
 		}
 	}
-	zeus::Renderer::DrawTexturedQuad(m_CharacterSprite, { 16, 16, 0 }, m_TexManager->GetSubTexture("person_sheet", 24 + m_CharacterSprite.x + m_CharacterSprite.w, 16 + m_CharacterSprite.y));
+	zeus::Renderer::DrawTexturedQuad(m_CharacterPos, { 32, 32, 0 }, m_TexManager->GetSubTexture("person_sheet", 24 + m_CharacterSprite.x + m_CharacterSprite.z, 16 + m_CharacterSprite.y));
 
-	ImGui::Begin("character");
+	auto& cam = m_Camera->GetProperties();
+	ImGui::Begin("settings");
 	{
-		ImGui::DragFloat("z value", &m_CharacterSprite.z, 0.01f);
+		ImGui::DragFloat3("camera position", glm::value_ptr(cam.Position));
+		int* tmp = (int*)&platformPos;
+		ImGui::DragInt2("platform position", tmp);
+		ImGui::DragFloat3("character position", glm::value_ptr(m_CharacterPos));
 		ImGui::End();
 	}
 
 	zeus::Renderer::Flush(m_TexManager);
 }
 
-float speed = 0.5f;
 void GameLayer::OnUpdate(float dt)
 {
 	auto const& cam = m_Camera->GetProperties();
@@ -97,29 +115,30 @@ void GameLayer::OnUpdate(float dt)
 	}
 	else
 	{
+		float velocity = 150.0f * dt;
 		if (m_Keys[KEY_A])
 		{
-			m_CharacterSprite.w = 0.0f;
+			m_CharacterSprite.z = 0.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.x += speed;
+			platformPos.x += velocity;
 		}
 		if (m_Keys[KEY_D])
 		{
-			m_CharacterSprite.w = 3.0f;
+			m_CharacterSprite.z = 3.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.x -= speed;
+			platformPos.x -= velocity;
 		}
 		if (m_Keys[KEY_W])
 		{
-			m_CharacterSprite.w = 2.0f;
+			m_CharacterSprite.z = 2.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.y -= speed;
+			platformPos.y -= velocity;
 		}
 		if (m_Keys[KEY_S])
 		{
-			m_CharacterSprite.w = 1.0f;
+			m_CharacterSprite.z = 1.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.y += speed;
+			platformPos.y += velocity;
 		}
 		if (!(m_Keys[KEY_A] || m_Keys[KEY_D] || m_Keys[KEY_W] || m_Keys[KEY_S]))
 		{

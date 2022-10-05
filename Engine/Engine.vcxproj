@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\util\random.h" />
     <ClInclude Include="src\util\imgui_ui.h" />
     <ClInclude Include="src\util\camera.h" />
     <ClInclude Include="src\renderer\opengl\opengl_texture.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="src\util\texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\util\random.cpp" />
     <ClCompile Include="src\util\imgui_ui.cpp" />
     <ClCompile Include="src\util\camera.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_texture.cpp" />

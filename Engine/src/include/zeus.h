@@ -11,3 +11,4 @@
 #include "..\window\window_constants.h"
 #include "..\util\texture_manager.h"
 #include "..\util\camera.h"
+#include "..\util\random.h"

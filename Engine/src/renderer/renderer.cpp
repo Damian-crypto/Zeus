@@ -153,7 +153,7 @@ namespace zeus
 		s_RenderCommand->ClearBuffers();
 	}
 
-	void Renderer::DrawQuad(const glm::vec3& pos, const glm::vec3& size, float angle, const glm::vec4& color)
+	void Renderer::DrawQuad(const glm::vec3& pos, const glm::vec3& size, const glm::vec4& color, float angle)
 	{
 		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
 		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
