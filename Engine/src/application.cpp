@@ -40,7 +40,7 @@ namespace zeus
 	{
 		m_Window = Window::GetWindow();
 		m_Window->CreateWindow({ m_Properties.Title, m_Properties.Width, m_Properties.Height });
-		m_Window->VSyncEnable(true);
+		m_Window->VSyncEnable(false);
 		m_ImGui->Init();
 	}
 
@@ -63,7 +63,9 @@ namespace zeus
 			m_ImGui->Begin();
 			for (Layer* layer : m_LayerQueue)
 			{
+				// TODO: OnUpdate invokes only for each 60 frames
 				layer->OnUpdate(m_DeltaTime);
+				// TODO: OnRender invokes for each iteration
 				layer->OnRender();
 			}
 			m_ImGui->End();
@@ -84,6 +86,11 @@ namespace zeus
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerQueue.PushBack(layer);
+	}
+
+	void Application::SetVSync(bool enabled)
+	{
+		m_Window->VSyncEnable(enabled);
 	}
 
 	std::shared_ptr<Window> Application::GetWindow()

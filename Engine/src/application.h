@@ -41,6 +41,7 @@ namespace zeus
 		void Stop();
 		void OnEvent(Event& evt);
 		void PushLayer(Layer* layer);
+		void SetVSync(bool enabled = true);
 		std::shared_ptr<Window> GetWindow();
 		int GetDeltaTime() const;
 

@@ -31,13 +31,34 @@ static const struct DefaultPerspectiveCamera
 	float MovementSpeed = 0.3f;
 } defaultPerspectiveCamera;
 
+glm::vec3 spritePos{ 0.0f, 0.0f, 0.1f };
+std::shared_ptr<zeus::TextureManager> textureManager;
+class SandboxLevel : public zeus::Level
+{
+public:
+	void OnStart() override
+	{
+	}
+
+	void Draw() override
+	{
+		for (int y = 0; y < 1024; y += 128)
+		{
+			for (int x = 0; x < 1024; x += 128)
+			{
+				zeus::Renderer::DrawTexturedQuad({ x, y, 0 }, { 64, 64, 0 }, textureManager->GetSubTexture("building_sheet", 11, 1));
+				//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
+			}
+		}
+
+		zeus::Renderer::DrawTexturedQuad(spritePos, {20.0f, 20.0f, 0.0f}, textureManager->GetTexture("wood_tex"));
+	}
+};
 
 class SandboxLayer : public zeus::Layer
 {
 private:
 	std::string m_Name;
-
-	glm::vec3 m_SpritePos{ 0.0f, 0.0f, 0.1f };
 
 	bool m_Keys[65536] = { false };
 	bool m_CameraMode = false;
@@ -46,7 +67,8 @@ private:
 	std::uniform_int_distribution<int> dist{ 0, 255 };
 
 	std::shared_ptr<zeus::Camera> m_Camera;
-	std::shared_ptr<zeus::TextureManager> m_TexManager;
+
+	zeus::LevelManager m_LevelManager;
 
 public:
 	SandboxLayer(const char* name)
@@ -56,11 +78,14 @@ public:
 		m_Camera->GetProperties().Position = defaultOrthoCamera.Position;
 		m_Camera->GetProperties().MovementSpeed = defaultOrthoCamera.MovementSpeed;
 
-		m_TexManager = zeus::TextureManager::GetInstance();
-		m_TexManager->PutTexture({ "wood_tex", "assets/textures/wood.png" });
-		m_TexManager->PutTexture({ "window_tex", "assets/textures/window.png" });
-		m_TexManager->PutSpritesheet({ "person_sheet", "assets/textures/tilemap_packed.png", 16, true });
-		m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/roguelike_spritesheet.png", 17, true });
+		textureManager = zeus::TextureManager::GetInstance();
+		textureManager->PutTexture({ "wood_tex", "assets/textures/wood.png" });
+		textureManager->PutTexture({ "window_tex", "assets/textures/window.png" });
+		textureManager->PutSpritesheet({ "person_sheet", "assets/textures/tilemap_packed.png", 16, true });
+		textureManager->PutSpritesheet({ "building_sheet", "assets/textures/roguelike_spritesheet.png", 17, true });
+
+		const auto& lvl1 = std::make_shared<SandboxLevel>();
+		m_LevelManager.AddLevel(1, lvl1);
 
 		zeus::Renderer::Init();
 		zeus::Renderer::SetBackgroundColor(GREY);
@@ -125,19 +150,19 @@ public:
 		{
 			if (m_Keys[KEY_A])
 			{
-				m_SpritePos.x -= speed;
+				spritePos.x -= speed;
 			}
 			if (m_Keys[KEY_D])
 			{
-				m_SpritePos.x += speed;
+				spritePos.x += speed;
 			}
 			if (m_Keys[KEY_W])
 			{
-				m_SpritePos.y += speed;
+				spritePos.y += speed;
 			}
 			if (m_Keys[KEY_S])
 			{
-				m_SpritePos.y -= speed;
+				spritePos.y -= speed;
 			}
 		}
 	}
@@ -190,34 +215,23 @@ public:
 
 		RenderUI();
 
-		zeus::Renderer::DrawTexturedQuad({ 0.0f, 0.0f, 0.0f }, { 20.0f, 20.0f, 0.0f }, m_TexManager->GetTexture("wood_tex"));
-		for (int y = 0; y < 256; y += 32)
-		{
-			for (int x = 0; x < 256; x += 32)
-			{
-				zeus::Renderer::DrawTexturedQuad({ x, y, 0 }, { 16, 16, 0 }, m_TexManager->GetSubTexture("building_sheet", 11, 1));
-				//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
-			}
-		}
-		zeus::Renderer::DrawTexturedQuad(m_SpritePos, scaler, m_TexManager->GetSubTexture("person_sheet", texX, texY));
+		//for (int y = 0; y < 256; y += 32)
+		//{
+		//	for (int x = 0; x < 256; x += 32)
+		//	{
+		//		zeus::Renderer::DrawTexturedQuad({ x, y, 0 }, { 16, 16, 0 }, textureManager->GetSubTexture("building_sheet", 11, 1));
+		//		//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
+		//	}
+		//}
 
-		zeus::Renderer::Flush(m_TexManager);
+		m_LevelManager.SetActiveLevel(1);
+		m_LevelManager.Draw();
+
+		zeus::Renderer::Flush(textureManager);
 	}
 
-	bool showDemo = true;
 	void RenderUI()
 	{
-		ImGui::ShowDemoWindow(&showDemo);
-
-		ImGui::Begin("Renderer Info");
-		{
-			ImGui::Text("Maximum texture slots supported: %d", zeus::TextureManager::GetTextureMaxSlotsCount());
-			const auto& stat = zeus::Renderer::GetRendererStat();
-			ImGui::Text("Quads drawn: %d / %d", stat.QuadsDrawn, zeus::Renderer::MaxQuads);
-			ImGui::Text("Draw calls: %d", stat.DrawCalls);
-			ImGui::End();
-		}
-
 		ImGui::Begin("Camera Properties");
 		{
 			auto& cam = m_Camera->GetProperties();
@@ -271,17 +285,10 @@ public:
 			int step = 1;
 			ImGui::InputScalar("index x", ImGuiDataType_S32, &texX, &step, NULL, "%d");
 			ImGui::InputScalar("index y", ImGuiDataType_S32, &texY, &step, NULL, "%d");
-			ImGui::DragFloat2("box position", glm::value_ptr(m_SpritePos), 0.1f);
-			ImGui::DragFloat("box depth value", &m_SpritePos.z, 0.01f, -1.0f, 1.0f);
+			ImGui::DragFloat2("box position", glm::value_ptr(spritePos), 0.1f);
+			ImGui::DragFloat("box depth value", &spritePos.z, 0.01f, -1.0f, 1.0f);
 			ImGui::DragFloat("angle", &angle);
 			ImGui::DragFloat3("scale", glm::value_ptr(scaler));
-			ImGui::End();
-		}
-
-		ImGui::Begin("Mouse Handle");
-		{
-			const auto& [mouseX, mouseY] = zeus::Input::GetMousePosition();
-			ImGui::Text("cursor position: %f, %f", mouseX, mouseY);
 			ImGui::End();
 		}
 	}
@@ -350,6 +357,56 @@ public:
 	}
 };
 
+class EngineInfoLayer : public zeus::Layer
+{
+private:
+	zeus::Application* app = nullptr;
+
+public:
+	EngineInfoLayer(const char* name)
+	{
+		app = zeus::Application::GetInstance();
+	}
+
+	bool showDemo = true;
+	void OnUpdate(float dt) override
+	{
+		ImGui::ShowDemoWindow(&showDemo);
+
+		ImGui::Begin("Renderer Info");
+		{
+			ImGui::Text("Maximum texture slots supported: %d", zeus::TextureManager::GetTextureMaxSlotsCount());
+			const auto& stat = zeus::Renderer::GetRendererStat();
+			ImGui::Text("Quads drawn: %d / %d", stat.QuadsDrawn, zeus::Renderer::MaxQuads);
+			ImGui::Text("Draw calls: %d", stat.DrawCalls);
+			ImGui::End();
+		}
+
+		ImGui::Begin("Mouse");
+		{
+			const auto& [mouseX, mouseY] = zeus::Input::GetMousePosition();
+			ImGui::Text("cursor position: %f, %f", mouseX, mouseY);
+			ImGui::End();
+		}
+
+		ImGui::Begin("Application");
+		{
+			static bool vsyncOn = true;
+			ImGui::Checkbox("v-sync enabled", &vsyncOn);
+			app->SetVSync(vsyncOn);
+			ImGui::End();
+		}
+	}
+
+	void OnRender() override
+	{
+	}
+
+	void OnEvent(zeus::Event& e) override
+	{
+	}
+};
+
 int main()
 {
 	try
@@ -357,6 +414,7 @@ int main()
 		auto app = new zeus::Application({ "Sandbox", WIDTH, HEIGHT });
 		app->Init();
 		app->PushLayer(new SandboxLayer("sandbox"));
+		app->PushLayer(new EngineInfoLayer("engine"));
 		app->Run();
 	}
 	catch (std::exception e)

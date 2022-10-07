@@ -141,6 +141,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\util\ecs\component.h" />
+    <ClInclude Include="src\util\ecs\ecs.h" />
+    <ClInclude Include="src\util\level_manager.h" />
     <ClInclude Include="src\util\random.h" />
     <ClInclude Include="src\util\imgui_ui.h" />
     <ClInclude Include="src\util\camera.h" />
@@ -176,6 +179,8 @@
     <ClInclude Include="src\util\texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\util\ecs\ecs.cpp" />
+    <ClCompile Include="src\util\level_manager.cpp" />
     <ClCompile Include="src\util\random.cpp" />
     <ClCompile Include="src\util\imgui_ui.cpp" />
     <ClCompile Include="src\util\camera.cpp" />
