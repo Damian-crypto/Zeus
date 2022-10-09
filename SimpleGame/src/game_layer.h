@@ -13,17 +13,15 @@ const glm::vec4 GREEN	= { 0.0f, 1.0f, 0.0f, 1.0f };
 const glm::vec4 GREY	= { 0.3f, 0.3f, 0.3f, 1.0f };
 const glm::vec4 CYAN	= { 0.0f, 1.0f, 1.0f, 1.0f };
 
-struct vec2i
-{
-	int x, y;
-};
-
 class GameLayer : public zeus::Layer
 {
 private:
 	std::string m_Name;
 	std::shared_ptr<zeus::Camera> m_Camera;
 	std::shared_ptr<zeus::TextureManager> m_TexManager;
+	zeus::LevelManager m_LevelManager;
+
+	uint32_t m_CurrentLevel = 0;
 
 	bool m_Keys[65536] = { false };
 

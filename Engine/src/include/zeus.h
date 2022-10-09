@@ -10,6 +10,7 @@
 #include "..\renderer\shader.h"
 #include "..\window\window_constants.h"
 #include "..\util\texture_manager.h"
+#include "..\util\texture.h"
 #include "..\util\camera.h"
 #include "..\util\ecs\component.h"
 #include "..\util\ecs\ecs.h"

@@ -7,9 +7,9 @@ namespace zeus
 		return m_Levels[key];
 	}
 
-	std::pair<uint32_t, std::shared_ptr<Level>> LevelManager::GetActiveLevel()
+	std::shared_ptr<Level> LevelManager::GetActiveLevel()
 	{
-		return { m_ActiveLevel, m_Levels[m_ActiveLevel] };
+		return m_Levels[m_ActiveLevel];
 	}
 
 	void LevelManager::SetActiveLevel(uint32_t lvl)
@@ -20,6 +20,7 @@ namespace zeus
 	void LevelManager::AddLevel(uint32_t key, std::shared_ptr<Level> level)
 	{
 		m_Levels[key] = level;
+		m_Levels[key]->m_LevelID = key;
 		m_Levels[key]->OnStart();
 	}
 
@@ -36,5 +37,15 @@ namespace zeus
 	void LevelManager::Draw()
 	{
 		m_Levels[m_ActiveLevel]->Draw();
+	}
+
+	LevelResource& Level::GetLevelResources()
+	{
+		return m_LevelResources;
+	}
+
+	uint32_t Level::GetLevelID()
+	{
+		return m_LevelID;
 	}
 }

@@ -8,8 +8,9 @@
 namespace zeus
 {
 	class Texture;
-	class Camera;
+	class SubTexture;
 	class TextureManager;
+	class Camera;
 
 	struct RendererStatistics
 	{
@@ -34,6 +35,7 @@ namespace zeus
 		static void Start(const std::shared_ptr<Camera> camera);
 		static void DrawQuad(const glm::vec3& pos, const glm::vec3& size, const glm::vec4& color = glm::vec4(1.0f), float angle = 0.0f);
 		static void DrawTexturedQuad(const glm::vec3& pos, const glm::vec3& size, const std::shared_ptr<Texture> tex, float angle = 0.0f, const glm::vec4& tint = glm::vec4(1.0f));
+		static void DrawTexturedQuad(const glm::vec3& pos, const glm::vec3& size, const std::shared_ptr<SubTexture> tex, float angle = 0.0f, const glm::vec4& tint = glm::vec4(1.0f));
 		static void Flush(const std::shared_ptr<TextureManager> texManager);
 		static void SetPolygonMode(bool enabled);
 		static void SetDepthTest(bool enabled);

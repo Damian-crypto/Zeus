@@ -97,12 +97,14 @@ namespace zeus
 			{ -1.0f,  1.0f, 0.0f, 1.0f }
 		};
 
-		//s_RenderData.TextureCoordinates = {
-		//	{ 0.0f, 0.0f },
-		//	{ 1.0f, 0.0f },
-		//	{ 1.0f, 1.0f },
-		//	{ 0.0f, 1.0f }
-		//};
+#if 0
+		s_RenderData.TextureCoordinates = {
+			{ 0.0f, 0.0f },
+			{ 1.0f, 0.0f },
+			{ 1.0f, 1.0f },
+			{ 0.0f, 1.0f }
+		};
+#endif
 
 		s_RenderData.TextureCoordinates = std::vector<glm::vec2>(4, glm::vec2(1.0f));
 
@@ -172,6 +174,33 @@ namespace zeus
 
 			s_RenderData.NextVertex += 2;
 			s_RenderData.Vertices[s_RenderData.NextVertex++] = -1.0f; // tex index -1 means it is a color
+		}
+
+		s_RenderData.RendererStat.QuadsDrawn++;
+	}
+
+	void Renderer::DrawTexturedQuad(const glm::vec3& pos, const glm::vec3& size, const std::shared_ptr<SubTexture> tex, float angle, const glm::vec4& tint)
+	{
+		tex->Activate();
+		s_RenderData.TextureCoordinates = tex->GetTexCoords();
+		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
+		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
+		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+		for (int i = 0; i < 4; i++)
+		{
+			glm::vec4 vertex = transform * rotation * scale * s_RenderData.QuadVertices[i];
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.x;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.y;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.z;
+
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.r;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.g;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.b;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.a;
+
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].x;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].y;
+			s_RenderData.Vertices[s_RenderData.NextVertex++] = (float)tex->GetTextureSlot();
 		}
 
 		s_RenderData.RendererStat.QuadsDrawn++;

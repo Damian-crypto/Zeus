@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
 
+#include <random>
 #include <iostream>
 #include <random>
 #include <exception>
@@ -31,22 +32,39 @@ static const struct DefaultPerspectiveCamera
 	float MovementSpeed = 0.3f;
 } defaultPerspectiveCamera;
 
+struct vec2i
+{
+	int x, y;
+};
+
 glm::vec3 spritePos{ 0.0f, 0.0f, 0.1f };
 std::shared_ptr<zeus::TextureManager> textureManager;
 class SandboxLevel : public zeus::Level
 {
+private:
+	std::vector<std::vector<vec2i>> m_Map;
+
 public:
 	void OnStart() override
 	{
+		m_Map = std::vector<std::vector<vec2i>>(8, std::vector<vec2i>(8));
+
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 8; j++)
+			{
+				m_Map[i][j] = { zeus::Random::GetInt(0, 58), zeus::Random::GetInt(0, 32) };
+			}
+		}
 	}
 
 	void Draw() override
 	{
-		for (int y = 0; y < 1024; y += 128)
+		for (int y = 0; y < 8; y++)
 		{
-			for (int x = 0; x < 1024; x += 128)
+			for (int x = 0; x < 8; x++)
 			{
-				zeus::Renderer::DrawTexturedQuad({ x, y, 0 }, { 64, 64, 0 }, textureManager->GetSubTexture("building_sheet", 11, 1));
+				zeus::Renderer::DrawTexturedQuad({ x * 128, y * 128, 0 }, { 64, 64, 0 }, textureManager->GetSubTexture("building_sheet", m_Map[y][x].x, m_Map[y][x].y));
 				//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
 			}
 		}
@@ -232,6 +250,36 @@ public:
 
 	void RenderUI()
 	{
+#if 1
+		ImGui::Begin("Tiles");
+		{
+			ImTextureID id = 0;
+			ImVec2 bottomRight, topLeft;
+			for (uint32_t y = 0; y < 32; y++)
+			{
+				for (uint32_t x = 0; x < 57; x++)
+				{
+					if (x % 10 != 0)
+						ImGui::SameLine();
+					auto tex = textureManager->GetSubTexture("building_sheet", x, y);
+					id = (ImTextureID)tex->GetTextureID();
+					bottomRight = *(ImVec2*)&tex->GetTexCoords()[1];
+					topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
+					ImGui::PushID(x * 57 + y);
+					if (ImGui::ImageButton(id, ImVec2(16, 16), topLeft, bottomRight))
+					{
+						std::cout << x << ", " << y << "\n";
+					}
+					ImGui::PopID();
+				}
+			}
+
+			ImGui::End();
+		}
+#endif
+
+		//ImGui::ShowMetricsWindow();
+
 		ImGui::Begin("Camera Properties");
 		{
 			auto& cam = m_Camera->GetProperties();

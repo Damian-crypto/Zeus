@@ -2,6 +2,9 @@
 
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "game_level.h"
+
+extern vec2i platformPos;
 
 GameLayer::GameLayer(const char* name)
 {
@@ -15,6 +18,10 @@ GameLayer::GameLayer(const char* name)
 
 	m_CharacterPos = { WIDTH / 2, HEIGHT / 2, 0.1f };
 	m_CharacterSprite = { 0.0f, 0.0f, 2.0f };
+
+	const auto& lvl1 = std::make_shared<BeginLevel>();
+	m_LevelManager.AddLevel(m_CurrentLevel, lvl1);
+	m_LevelManager.GetLevel(m_CurrentLevel)->GetLevelResources().TexManager = m_TexManager;
 
 	zeus::Renderer::Init();
 	zeus::Renderer::SetBackgroundColor(GREY);
@@ -53,29 +60,13 @@ void GameLayer::OnEvent(zeus::Event& evt)
 	dispatcher.Dispatch(zeus::EventType::KeyReleased, keyReleased);
 }
 
-vec2i platformPos{ 0, 0 };
 void GameLayer::OnRender()
 {
 	zeus::Renderer::Start(m_Camera);
 
-	for (int x = 0; x <= 1152; x += 64)
-	{
-		for (int y = 0; y <= 768; y += 64)
-		{
-			int xx = 0, yy = 0;
-			if (platformPos.x + x > 0)
-				xx = (platformPos.x + x) % 1152;
-			else
-				xx = platformPos.x + 1152 + x;
+	m_LevelManager.SetActiveLevel(m_CurrentLevel);
+	m_LevelManager.Draw();
 
-			if (platformPos.y + y > 0)
-				yy = (platformPos.y + y) % 768;
-			else
-				yy = platformPos.y + 768 + y;
-
-			zeus::Renderer::DrawTexturedQuad({ (float)xx, (float)yy, 0.0f}, { 32, 32, 0 }, m_TexManager->GetSubTexture("building_sheet", 0, 0));
-		}
-	}
 	zeus::Renderer::DrawTexturedQuad(m_CharacterPos, { 32, 32, 0 }, m_TexManager->GetSubTexture("person_sheet", 24 + m_CharacterSprite.x + m_CharacterSprite.z, 16 + m_CharacterSprite.y));
 
 	auto& cam = m_Camera->GetProperties();

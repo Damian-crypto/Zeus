@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\game_level.cpp" />
     <ClCompile Include="src\game_layer.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
@@ -148,7 +149,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\game_level.h" />
     <ClInclude Include="src\game_layer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\levels\level1.data" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
