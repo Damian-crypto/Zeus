@@ -12,22 +12,14 @@ void BeginLevel::OnStart()
 
 void BeginLevel::Draw()
 {
-	for (int x = 0; x <= 1152; x += 64)
+	for (int y = 11; y >= 0; y--)
 	{
-		for (int y = 0; y <= 768; y += 64)
+		for (int x = 0; x < 18; x++)
 		{
-			int xx = 0, yy = 0;
-			if (platformPos.x + x > 0)
-				xx = (platformPos.x + x) % 1152;
-			else
-				xx = platformPos.x + 1152 + x;
+			int xx = x * 64 + platformPos.x;
+			int yy = y * 64 + platformPos.y;
 
-			if (platformPos.y + y > 0)
-				yy = (platformPos.y + y) % 768;
-			else
-				yy = platformPos.y + 768 + y;
-
-			zeus::Renderer::DrawTexturedQuad({ (float)xx, (float)yy, 0.0f }, { 32, 32, 0 }, m_LevelResources.TexManager->GetSubTexture("building_sheet", 0, 0));
+			zeus::Renderer::DrawTexturedQuad({ (float)xx, (float)yy, 0.0f }, { 32, 32, 0 }, m_LevelResources.TexManager->GetSubTexture("building_sheet", m_Map[y][x].x, m_Map[y][x].y));
 		}
 	}
 }
