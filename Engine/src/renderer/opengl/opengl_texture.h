@@ -6,7 +6,11 @@ namespace zeus
 {
 	class OpenGLTexture : public Texture
 	{
+	private:
+		bool m_IsStorage = false;
+
 	public:
+		OpenGLTexture();
 		OpenGLTexture(const std::string& filepath);
 		~OpenGLTexture();
 

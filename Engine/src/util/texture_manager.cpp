@@ -1,3 +1,4 @@
+#include "corepch.h"
 #include "texture_manager.h"
 
 #include "texture.h"
@@ -28,11 +29,24 @@ namespace zeus
 		m_TextureSlot++;
 	}
 
-	void TextureManager::PutSpritesheet(const TextureInfo& info)
+	void TextureManager::PutTexture(const std::string& name, std::shared_ptr<Texture> tex)
 	{
 		if (GetTextureMaxSlotsCount() <= m_TextureSlot + 1)
 		{
 			throw std::runtime_error("Runtime Error: You exceeding your maximum texture slots count!");
+		}
+
+		m_Textures[name.c_str()] = tex;
+		m_Textures[name.c_str()]->Bind(m_TextureSlot);
+		m_TextureSlotIndices.push_back(m_TextureSlot);
+		m_TextureSlot++;
+	}
+
+	void TextureManager::PutSpritesheet(const TextureInfo& info)
+	{
+		if (GetTextureMaxSlotsCount() <= m_TextureSlot + 1)
+		{
+			throw std::runtime_error("Runtime Error: You are exceeding your maximum texture slots count!");
 		}
 
 		m_Textures[info.Name] = Texture::CreateTexture(info.Filepath);
@@ -50,14 +64,6 @@ namespace zeus
 		{
 			throw std::runtime_error("Runtime Error: Accessing invalid texture!");
 		}
-
-#if 0
-		const auto& texture = m_Textures[name];
-		texture->m_TexCoords[0] = { 0.0f, 0.0f }; // bottom left
-		texture->m_TexCoords[1] = { 1.0f, 0.0f }; // bottom right
-		texture->m_TexCoords[2] = { 1.0f, 1.0f }; // top right
-		texture->m_TexCoords[3] = { 0.0f, 1.0f }; // top left
-#endif
 
 		return m_Textures[name.data()];
 	}
@@ -112,6 +118,11 @@ namespace zeus
 	std::vector<int>& TextureManager::GetTextureSlotData()
 	{
 		return m_TextureSlotIndices;
+	}
+
+	uint32_t TextureManager::GetTextureSlotsUsed() const
+	{
+		return m_TextureSlot;
 	}
 
 	std::shared_ptr<TextureManager> TextureManager::GetInstance()

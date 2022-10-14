@@ -1,13 +1,42 @@
+#include "corepch.h"
 #include "texture.h"
 
 #include "renderer/opengl/opengl_texture.h"
 #include "texture_manager.h"
+#include "renderer/renderer_constants.h"
 
 namespace zeus
 {
 	std::shared_ptr<Texture> Texture::CreateTexture(std::string_view filepath)
 	{
 		return std::make_shared<OpenGLTexture>(filepath.data());
+	}
+
+	std::shared_ptr<Texture> Texture::CreateTexture()
+	{
+		return std::make_shared<OpenGLTexture>();
+	}
+
+	void Texture::SetInternalFormat(ColorAttachment colorFormat)
+	{
+		switch (colorFormat)
+		{
+		case ColorAttachment::RGB:
+			m_InternalFormat = RGB;
+			m_PixelFormat = RGB;
+			break;
+		case ColorAttachment::RGBA:
+			m_InternalFormat = RGBA;
+			m_PixelFormat = RGBA;
+			break;
+		case ColorAttachment::INT:
+			m_InternalFormat = REDINT32;
+			m_PixelFormat = REDINT;
+			break;
+		default:
+			m_InternalFormat = RGB;
+			m_PixelFormat = RGB;
+		}
 	}
 
 	std::shared_ptr<SubTexture> SubTexture::CreateSubTexture(std::shared_ptr<Texture> texture, uint32_t xCoord, uint32_t yCoord, uint32_t cellsize)

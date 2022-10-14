@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core.h"
 #include "event/event.h"
 
 namespace zeus

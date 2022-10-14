@@ -1,16 +1,11 @@
 #pragma once
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
-#include <set>
-#include <thread>
-#include <functional>
-#include <array>
-#include <fstream>
-#include <sstream>
-#include <string_view>
-#include <algorithm>
+#ifdef _DEBUG
+	#define DEBUG_MODE 1
+#else
+	#define DEBUG_MODE 0
+#endif
 
-#define GLValidate(x) x; if (GLenum error; (error = glGetError()) != GL_NO_ERROR) __debugbreak();
+#ifdef _MSC_VER
+	#define BREAK_POINT __debugbreak()
+#endif

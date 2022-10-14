@@ -110,10 +110,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WINDOWING_SYSTEM_GLFW;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWING_SYSTEM_GLFW;_CRT_SECURE_NO_WARNINGS;_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\glm\include;$(ProjectDir)vendor\stb_image\include;$(ProjectDir)vendor\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\glm\include;$(ProjectDir)vendor\stb_image\include;$(ProjectDir)vendor\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>corepch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,10 +129,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WINDOWING_SYSTEM_GLFW;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWING_SYSTEM_GLFW;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\glm\include;$(ProjectDir)vendor\stb_image\include;$(ProjectDir)vendor\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)dependency\glfw\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\glm\include;$(ProjectDir)vendor\stb_image\include;$(ProjectDir)vendor\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>corepch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +145,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\renderer\framebuffer.h" />
+    <ClInclude Include="src\renderer\opengl\opengl_framebuffer.h" />
+    <ClInclude Include="src\core.h" />
+    <ClInclude Include="src\renderer\opengl\debugger.h" />
     <ClInclude Include="src\util\ecs\component.h" />
     <ClInclude Include="src\util\ecs\ecs.h" />
     <ClInclude Include="src\util\level_manager.h" />
@@ -173,12 +181,19 @@
     <ClInclude Include="src\event\event.h" />
     <ClInclude Include="src\layer_queue.h" />
     <ClInclude Include="src\application.h" />
-    <ClInclude Include="src\core.h" />
+    <ClInclude Include="corepch.h" />
     <ClInclude Include="src\include\zeus.h" />
     <ClInclude Include="src\window\window_constants.h" />
     <ClInclude Include="src\util\texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="corepch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\renderer\framebuffer.cpp" />
+    <ClCompile Include="src\renderer\opengl\debugger.cpp" />
+    <ClCompile Include="src\renderer\opengl\opengl_framebuffer.cpp" />
     <ClCompile Include="src\util\ecs\ecs.cpp" />
     <ClCompile Include="src\util\level_manager.cpp" />
     <ClCompile Include="src\util\random.cpp" />
@@ -202,7 +217,10 @@
     <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
     <ClCompile Include="vendor\stb_image\include\stb\stb_image.cpp" />
-    <ClCompile Include="vendor\glad\src\gl.c" />
+    <ClCompile Include="vendor\glad\src\gl.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\window\input.cpp" />
     <ClCompile Include="src\window\input.h" />
     <ClCompile Include="src\window\window.cpp" />

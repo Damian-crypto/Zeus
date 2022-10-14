@@ -7,6 +7,7 @@
 #include <iostream>
 #include <random>
 #include <exception>
+#include <fstream>
 
 static constexpr int WIDTH = 1280;
 static constexpr int HEIGHT = 720;
@@ -18,7 +19,7 @@ const glm::vec4 GREY = { 0.3f, 0.3f, 0.3f, 1.0f };
 
 static const struct DefaultOrthographicCamera
 {
-	glm::vec3 Position = { -WIDTH / 2.0f, -HEIGHT / 2.0f, 0.0f };
+	glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
 	glm::vec3 Direction = { 0.0f, 0.0f, -1.0f };
 	glm::vec3 Right = { 0.0f, 0.0f, 0.0f };
 	float MovementSpeed = 30.0f;
@@ -39,37 +40,106 @@ struct vec2i
 
 glm::vec3 spritePos{ 0.0f, 0.0f, 0.1f };
 std::shared_ptr<zeus::TextureManager> textureManager;
+float zVal = 0.0f, angle = 0.0f;
+glm::vec3 scaler{ 50.0f, 50.0f, 0.0f };
 class SandboxLevel : public zeus::Level
 {
 private:
+	uint32_t m_LevelCols{ 0u };
+	uint32_t m_LevelRows{ 0u };
+	uint32_t m_CellSize{ 0u };
 	std::vector<std::vector<vec2i>> m_Map;
 
 public:
 	void OnStart() override
 	{
-		m_Map = std::vector<std::vector<vec2i>>(8, std::vector<vec2i>(8));
-
-		for (int i = 0; i < 8; i++)
-		{
-			for (int j = 0; j < 8; j++)
-			{
-				m_Map[i][j] = { zeus::Random::GetInt(0, 58), zeus::Random::GetInt(0, 32) };
-			}
-		}
+		LoadLevel("assets/levels/testlevel.data");
 	}
 
+	zeus::QuadData quad;
 	void Draw() override
 	{
-		for (int y = 0; y < 8; y++)
+		static float gap			= m_CellSize * 2;
+		static float leftBoundary	= 0.0f;
+		static float rightBoundary	= WIDTH - m_CellSize;
+		static float topBoundary	= HEIGHT - m_CellSize;
+		static float bottomBoundary = 0.0f;
+
+		for (int y = 0; y < m_LevelRows; y++)
 		{
-			for (int x = 0; x < 8; x++)
+			for (int x = 0; x < m_LevelCols; x++)
 			{
-				zeus::Renderer::DrawTexturedQuad({ x * 128, y * 128, 0 }, { 64, 64, 0 }, textureManager->GetSubTexture("building_sheet", m_Map[y][x].x, m_Map[y][x].y));
-				//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
+				float xx = x * gap - spritePos.x + 32.0f;
+				float yy = y * gap - spritePos.y - 32.0f;
+
+				if (xx < leftBoundary || xx > rightBoundary || yy < bottomBoundary || yy > topBoundary)
+					continue;
+
+				quad.SetPosition({ xx, yy, 0.0f });
+				quad.SetSize({ m_CellSize, m_CellSize, 0.0f });
+				quad.SetRotation(0.0f);
+				quad.SetSubTexture(textureManager->GetSubTexture("building_sheet", m_Map[y][x].x, m_Map[y][x].y));
+
+				zeus::Renderer::DrawTexturedQuad(quad);
+				//zeus::Renderer::DrawQuad(quad);
 			}
 		}
 
-		zeus::Renderer::DrawTexturedQuad(spritePos, {20.0f, 20.0f, 0.0f}, textureManager->GetTexture("wood_tex"));
+		quad.SetPosition(spritePos);
+		quad.SetSize(scaler);
+		quad.SetRotation(angle);
+		quad.SetTexture(textureManager->GetTexture("wood_tex"));
+
+		zeus::Renderer::DrawTexturedQuad(quad);
+	}
+
+	void LoadLevel(const std::string& filepath)
+	{
+		std::ifstream file(filepath);
+
+		std::string line;
+
+		// Reading columns count
+		getline(file, line);
+		size_t beginPos = line.find(':');
+		size_t endPos = line.size();
+		m_LevelCols = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		// Reading rows count
+		getline(file, line);
+		beginPos = line.find(':');
+		endPos = line.size();
+		m_LevelRows = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		// Reading cell size
+		getline(file, line);
+		beginPos = line.find(':');
+		endPos = line.size();
+		m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		
+		// Escape blank line
+		std::getline(file, line);
+
+		// Reading map
+		while (std::getline(file, line))
+		{
+			size_t lastPos = 0u;
+			std::vector<vec2i> tmp;
+			for (size_t k = 0; k < line.size(); k++)
+			{
+				beginPos = line.find('(', lastPos);
+				size_t midPos = line.find(',', beginPos);
+				endPos = line.find(')', beginPos + 1);
+
+				int x = stoi(line.substr(beginPos + 1, midPos - beginPos - 1));
+				int y = stoi(line.substr(midPos + 1, endPos - midPos - 1));
+
+				tmp.push_back({ x, y });
+
+				lastPos = endPos + 1;
+				k = lastPos;
+			}
+
+			m_Map.push_back(tmp);
+		}
 	}
 };
 
@@ -87,6 +157,7 @@ private:
 	std::shared_ptr<zeus::Camera> m_Camera;
 
 	zeus::LevelManager m_LevelManager;
+	std::shared_ptr<zeus::Framebuffer> m_Framebuffer;
 
 public:
 	SandboxLayer(const char* name)
@@ -104,6 +175,11 @@ public:
 
 		const auto& lvl1 = std::make_shared<SandboxLevel>();
 		m_LevelManager.AddLevel(1, lvl1);
+
+		zeus::FramebufferInfo frameInfo;
+		frameInfo.Attachments = { zeus::ColorAttachment::RGBA, zeus::ColorAttachment::INT };
+		m_Framebuffer = zeus::Framebuffer::CreateFramebuffer(frameInfo);
+		m_Framebuffer->Bind(textureManager);
 
 		zeus::Renderer::Init();
 		zeus::Renderer::SetBackgroundColor(GREY);
@@ -224,42 +300,81 @@ public:
 		}
 	}
 
-	float zVal = 0.0f, angle = 0.0f;
-	glm::vec3 scaler{ 50.0f, 50.0f, 0.0f };
-	int texX = 24, texY = 18;
 	void OnRender() override
 	{
-		zeus::Renderer::Start(m_Camera);
-
 		RenderUI();
 
-		//for (int y = 0; y < 256; y += 32)
-		//{
-		//	for (int x = 0; x < 256; x += 32)
-		//	{
-		//		zeus::Renderer::DrawTexturedQuad({ x, y, 0 }, { 16, 16, 0 }, textureManager->GetSubTexture("building_sheet", 11, 1));
-		//		//zeus::Renderer::DrawQuad({ x, y, 0.0f }, { 20.0f, 20.0f, 0.0f }, 0.0f, { dist(mt) / 255.0f, dist(mt) / 255.0f, dist(mt) / 255.0f, 1.0f });
-		//	}
-		//}
+		m_Framebuffer->Activate();
+		zeus::Renderer::Start(m_Camera);
 
 		m_LevelManager.SetActiveLevel(1);
 		m_LevelManager.Draw();
 
+		DrawGrid();
+		
 		zeus::Renderer::Flush(textureManager);
+
+		m_Framebuffer->Unbind();
+
+		zeus::Renderer::Refresh();
+
+		ImVec2 pos;
+		ImGui::Begin("viewport");
+		{
+			pos = ImGui::GetMousePos();
+			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
+			const auto& [sX, sY] = ImGui::GetWindowPos();
+			pos.x -= sX + windowOffset.x;
+			pos.y -= sY + windowOffset.y;
+
+			const auto& tex = m_Framebuffer->GetAttachedTextures()[0];
+			ImGui::Image(reinterpret_cast<void*>(tex->GetTextureID()), ImVec2{ WIDTH, HEIGHT }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+			ImGui::End();
+		}
+
+		ImGui::Begin("Entity");
+		{
+			int id = m_Framebuffer->ReadID(1, pos.x, HEIGHT - pos.y);
+
+			ImGui::Text("%f %f: %d", pos.x, pos.y, id);
+			ImGui::End();
+		}
+	}
+
+	void DrawGrid()
+	{
+		static zeus::LineData line;
+		static float z = 0.1f;
+		line.SetLineWidth(3.0f);
+		line.SetColor({ 1.0f, 0.0f, 1.0f, 1.0f });
+		for (float x = 0.0f; x <= WIDTH; x += 64.0f)
+		{
+			line.SetPoint1({ x, HEIGHT, z });
+			line.SetPoint2({ x, 0.0f, z });
+			zeus::Renderer::DrawLine(line);
+		}
+
+		for (float y = 0.0f; y <= HEIGHT; y += 64.0f)
+		{
+			line.SetPoint1({ 0.0f, y, z });
+			line.SetPoint2({ WIDTH, y, z });
+			zeus::Renderer::DrawLine(line);
+		}
 	}
 
 	void RenderUI()
 	{
-#if 1
+#if 0
 		ImGui::Begin("Tiles");
 		{
 			ImTextureID id = 0;
 			ImVec2 bottomRight, topLeft;
+			int windowWidth = (int)ImGui::GetWindowWidth();
 			for (uint32_t y = 0; y < 32; y++)
 			{
 				for (uint32_t x = 0; x < 57; x++)
 				{
-					if (x % 10 != 0)
+					if (x % windowWidth != 0)
 						ImGui::SameLine();
 					auto tex = textureManager->GetSubTexture("building_sheet", x, y);
 					id = (ImTextureID)tex->GetTextureID();
@@ -330,9 +445,6 @@ public:
 
 		ImGui::Begin("Textured Quad Handle");
 		{
-			int step = 1;
-			ImGui::InputScalar("index x", ImGuiDataType_S32, &texX, &step, NULL, "%d");
-			ImGui::InputScalar("index y", ImGuiDataType_S32, &texY, &step, NULL, "%d");
 			ImGui::DragFloat2("box position", glm::value_ptr(spritePos), 0.1f);
 			ImGui::DragFloat("box depth value", &spritePos.z, 0.01f, -1.0f, 1.0f);
 			ImGui::DragFloat("angle", &angle);
@@ -423,9 +535,10 @@ public:
 
 		ImGui::Begin("Renderer Info");
 		{
-			ImGui::Text("Maximum texture slots supported: %d", zeus::TextureManager::GetTextureMaxSlotsCount());
 			const auto& stat = zeus::Renderer::GetRendererStat();
+			ImGui::Text("Texture slots used: %d / %d", textureManager->GetTextureSlotsUsed(), zeus::TextureManager::GetTextureMaxSlotsCount());
 			ImGui::Text("Quads drawn: %d / %d", stat.QuadsDrawn, zeus::Renderer::MaxQuads);
+			ImGui::Text("Lines drawn: %d / %d", stat.LinesDrawn, zeus::Renderer::MaxLines);
 			ImGui::Text("Draw calls: %d", stat.DrawCalls);
 			ImGui::End();
 		}

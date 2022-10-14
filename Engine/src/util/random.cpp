@@ -1,3 +1,4 @@
+#include "corepch.h"
 #include "random.h"
 
 namespace zeus

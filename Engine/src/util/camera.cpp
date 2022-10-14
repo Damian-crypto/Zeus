@@ -1,3 +1,4 @@
+#include "corepch.h"
 #include "camera.h"
 
 #include "glm/gtc/matrix_transform.hpp"

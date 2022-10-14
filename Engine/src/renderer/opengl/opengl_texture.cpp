@@ -1,6 +1,5 @@
+#include "corepch.h"
 #include "opengl_texture.h"
-
-#include "core.h"
 
 #include "stb/stb_image.h"
 #include "glad/gl.h"
@@ -8,7 +7,14 @@
 
 namespace zeus
 {
+	OpenGLTexture::OpenGLTexture()
+		: m_IsStorage(true)
+	{
+		m_Filepath = "[this is a texture storage]";
+	}
+
 	OpenGLTexture::OpenGLTexture(const std::string& filepath)
+		: m_IsStorage(false)
 	{
 		m_Filepath = filepath;
 	}
@@ -28,50 +34,65 @@ namespace zeus
 
 		m_TextureSlot = slot;
 
-		stbi_set_flip_vertically_on_load(1);
-
-		int width, height, channels;
-		stbi_uc* data = stbi_load(m_Filepath.c_str(), &width, &height, &channels, 0);
-
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
-		glBindTexture(GL_TEXTURE_2D, m_TextureID);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Pixelated ? GL_NEAREST : GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Pixelated ? GL_NEAREST : GL_LINEAR);
-
-		m_Width = (uint32_t)width;
-		m_Height = (uint32_t)height;
-
-		int gpuFormat = GL_RED;
-		int imageFormat = GL_RED;
-		switch (channels)
+		if (m_IsStorage)
 		{
-		case 3:
-			gpuFormat = GL_RGB;
-			imageFormat = GL_RGB;
-			break;
-		case 4:
-			gpuFormat = GL_RGBA8;
-			imageFormat = GL_RGBA;
-			break;
-		}
+			glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
+			glBindTexture(GL_TEXTURE_2D, m_TextureID);
 
-		uint32_t mipLevel = 0; // 0 - largest, 1 - half of the largest
-		if (data != nullptr)
-		{
-			glTexImage2D(GL_TEXTURE_2D, mipLevel, gpuFormat, width, height, 0, imageFormat, GL_UNSIGNED_BYTE, data);
-			// Mipmaps are smaller resolution images of the same image
-			// That are used when textures are far-away from camera
-			glGenerateMipmap(GL_TEXTURE_2D);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Pixelated ? GL_NEAREST : GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Pixelated ? GL_NEAREST : GL_LINEAR);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_PixelFormat, GL_UNSIGNED_BYTE, nullptr);
 		}
 		else
 		{
-			throw std::runtime_error("Runtime Error: Failed to load image '" + m_Filepath + "'");
-		}
+			stbi_set_flip_vertically_on_load(1);
 
-		stbi_image_free(data);
+			int width, height, channels;
+			stbi_uc* data = stbi_load(m_Filepath.c_str(), &width, &height, &channels, 0);
+
+			glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
+			glBindTexture(GL_TEXTURE_2D, m_TextureID);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Pixelated ? GL_NEAREST : GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Pixelated ? GL_NEAREST : GL_LINEAR);
+
+			m_Width = (uint32_t)width;
+			m_Height = (uint32_t)height;
+
+			m_InternalFormat = GL_RED;	// defines the format that OpenGL should use to store the data internally
+			m_PixelFormat = GL_RED;		// describes the data you pass in as the last argument
+			switch (channels)
+			{
+			case 3:
+				m_InternalFormat = GL_RGB;
+				m_PixelFormat = GL_RGB;
+				break;
+			case 4:
+				m_InternalFormat = GL_RGBA8;
+				m_PixelFormat = GL_RGBA;
+				break;
+			}
+
+			uint32_t mipLevel = 0; // 0 - largest, 1 - half of the largest
+			if (data != nullptr)
+			{
+				glTexImage2D(GL_TEXTURE_2D, mipLevel, m_InternalFormat, m_Width, m_Height, 0, m_PixelFormat, GL_UNSIGNED_BYTE, data);
+				// Mipmaps are smaller resolution images of the same image
+				// That are used when textures are far-away from camera
+				glGenerateMipmap(GL_TEXTURE_2D);
+			}
+			else
+			{
+				throw std::runtime_error("Runtime Error: Failed to load image '" + m_Filepath + "'");
+			}
+
+			stbi_image_free(data);
+		}
 	}
 
 	void OpenGLTexture::Unbind() const

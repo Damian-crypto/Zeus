@@ -1,7 +1,7 @@
+#include "corepch.h"
 #include "renderer.h"
 
 #include "util/texture.h"
-#include "core.h"
 #include "shader.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -11,77 +11,45 @@
 #include "util/texture_manager.h"
 #include "application.h"
 
-const char* vertexSource = R"(
-#version 450
-
-layout (location = 0) in vec3 a_Position;
-layout (location = 1) in vec4 a_Color;
-layout (location = 2) in vec2 a_TexCoord;
-layout (location = 3) in float a_TexId;
-
-uniform mat4 u_Model;
-uniform mat4 u_View;
-uniform mat4 u_Projection;
-
-out vec4 f_Color;
-out vec2 f_TexCoord;
-out float f_TexId;
-
-void main()
-{
-	f_Color = a_Color;
-	f_TexCoord = a_TexCoord;
-	f_TexId = a_TexId;
-	gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
-}
-)";
-
-const char* fragmentSource = R"(
-#version 450
-
-layout (location = 0) out vec4 a_Color;
-
-in vec4 f_Color;
-in vec2 f_TexCoord;
-in float f_TexId;
-
-uniform sampler2D u_Textures[8];
-
-void main()
-{
-	int texIndex = int(f_TexId);
-	if (texIndex == -1.0)
-	{
-		a_Color = f_Color;
-	}
-	else
-	{
-		a_Color = texture(u_Textures[texIndex], f_TexCoord) * f_Color;
-	}
-}
-)";
-
 namespace zeus
 {
-	RenderCommand* Renderer::s_RenderCommand = new OpenGLRenderer;
+	RenderCommand* Renderer::s_QuadRenderCommand = new OpenGLRenderer;
+	RenderCommand* Renderer::s_LineRenderCommand = new OpenGLRenderer;
+
 	glm::vec4 Renderer::s_BackgroundColor = glm::vec4(1.0f);
 
 	struct RenderData
 	{
-		float* Vertices		= nullptr;
-		uint32_t* Indices	= nullptr;
-
 		glm::mat4 Model			{ 1.0f };
 		glm::mat4 View			{ 1.0f };
 		glm::mat4 Projection	{ 1.0f };
 
-		std::shared_ptr<Shader> SquareShader;
+		////////////////////////////////////////////
+		// Data for rendering quads ////////////////
+		////////////////////////////////////////////
+		float* QuadVertexData		= nullptr;
+		uint32_t* QuadIndexData		= nullptr;
 
+		std::shared_ptr<Shader> QuadShader;
+		
 		std::vector<glm::vec4> QuadVertices;
 		std::vector<glm::vec2> TextureCoordinates;
 
-		uint32_t NextVertex		= 0;
-		uint32_t RendererState	= 0;
+		uint32_t NextQuadVertex	= 0;
+
+		////////////////////////////////////////////
+		// Data for rendering lines ////////////////
+		////////////////////////////////////////////
+		float* LineVertexData = nullptr;
+		float LineWidth = 1.0f;
+		std::shared_ptr<Shader> LineShader;
+
+		uint32_t NextLineVertex = 0;
+
+		////////////////////////////////////////////
+		// Renderer data ///////////////////////////
+		////////////////////////////////////////////
+		uint32_t RendererState = 0;
 
 		RendererStatistics RendererStat;
 	};
@@ -90,6 +58,9 @@ namespace zeus
 
 	void Renderer::Init()
 	{
+		////////////////////////////////////////////
+		// Initializing quad renderer //////////////
+		////////////////////////////////////////////
 		s_RenderData.QuadVertices = {
 			{ -1.0f, -1.0f, 0.0f, 1.0f },
 			{  1.0f, -1.0f, 0.0f, 1.0f },
@@ -97,156 +68,223 @@ namespace zeus
 			{ -1.0f,  1.0f, 0.0f, 1.0f }
 		};
 
-#if 0
-		s_RenderData.TextureCoordinates = {
-			{ 0.0f, 0.0f },
-			{ 1.0f, 0.0f },
-			{ 1.0f, 1.0f },
-			{ 0.0f, 1.0f }
-		};
-#endif
-
 		s_RenderData.TextureCoordinates = std::vector<glm::vec2>(4, glm::vec2(1.0f));
 
-		s_RenderData.Indices = new uint32_t[MaxIndices]{ 0 };
+		s_RenderData.QuadShader = zeus::Shader::CreateShader("zeus_quad_shader", "assets/shaders/quad_vertex_shader.glsl", "assets/shaders/quad_fragment_shader.glsl");
+
+		s_RenderData.QuadIndexData = new uint32_t[MaxQuadIndices]{ 0 };
 
 		uint32_t idx = 0;
-		for (uint32_t i = 0; i < MaxIndices / 4; i += 4)
+		for (uint32_t i = 0; i < MaxQuadIndices / 4; i += 4)
 		{
 			// 1-st triangle
-			s_RenderData.Indices[idx + 0] = i + 0;
-			s_RenderData.Indices[idx + 1] = i + 1;
-			s_RenderData.Indices[idx + 2] = i + 3;
+			s_RenderData.QuadIndexData[idx + 0] = i + 0;
+			s_RenderData.QuadIndexData[idx + 1] = i + 1;
+			s_RenderData.QuadIndexData[idx + 2] = i + 3;
 			// 2-nd triangle
-			s_RenderData.Indices[idx + 3] = i + 1;
-			s_RenderData.Indices[idx + 4] = i + 2;
-			s_RenderData.Indices[idx + 5] = i + 3;
+			s_RenderData.QuadIndexData[idx + 3] = i + 1;
+			s_RenderData.QuadIndexData[idx + 4] = i + 2;
+			s_RenderData.QuadIndexData[idx + 5] = i + 3;
 
 			idx += 6;
 		}
 
-		s_RenderData.NextVertex = 0;
+		s_RenderData.NextQuadVertex = 0;
 
-		s_RenderData.Vertices = new float[MaxVertices]{ 0.0f };
+		VertexBufferLayout quadVertexLayout = {
+			DataType::Float3,
+			DataType::Float4,
+			DataType::Float2,
+			DataType::Float,
+			DataType::Float
+		};
 
-		s_RenderData.SquareShader = zeus::Shader::CreateShader("zeus_square_shader", vertexSource, fragmentSource);
+		s_RenderData.QuadVertexData = new float[MaxQuadVertices * quadVertexLayout.GetStrideSize()] { 0.0f };
 
-		s_RenderCommand->Init(MaxVertices, s_RenderData.Vertices, MaxIndices, s_RenderData.Indices);
+		VertexArray quadVertexArray(quadVertexLayout, MaxQuadVertices, s_RenderData.QuadVertexData, MaxQuadIndices, s_RenderData.QuadIndexData);
+
+		s_QuadRenderCommand->Init(quadVertexArray);
+
+		////////////////////////////////////////////
+		// Initializing line renderer //////////////
+		////////////////////////////////////////////
+		s_RenderData.LineShader = zeus::Shader::CreateShader("zeus_line_shader", "assets/shaders/line_vertex_shader.glsl", "assets/shaders/line_fragment_shader.glsl");
+
+		s_RenderData.NextLineVertex = 0;
+
+		VertexBufferLayout lineVertexLayout = {
+			DataType::Float3,
+			DataType::Float4
+		};
+
+		s_RenderData.LineVertexData = new float[MaxLineVertices * lineVertexLayout.GetStrideSize()] {0.0f};
+
+		VertexArray lineVertexArray(lineVertexLayout, MaxLineVertices, s_RenderData.LineVertexData, 0, nullptr);
+
+		s_LineRenderCommand->Init(lineVertexArray);
 	}
 
+	ProjectionProperties projectionProps;
 	void Renderer::Start(const std::shared_ptr<Camera> camera)
 	{
 		const auto& props = Application::GetInstance()->GetApplicationProperties();
+		
+		s_RenderData.Model	= glm::mat4(1.0f);
+		s_RenderData.View	= glm::mat4(1.0f);
+		s_RenderData.View	= camera->GetViewMatrix();
 
-		s_RenderData.Model = glm::mat4(1.0f);
-		s_RenderData.View = glm::mat4(1.0f);
-		s_RenderData.View = camera->GetViewMatrix();
-
-		ProjectionProperties projectionProps;
-		projectionProps.Left = 0.0f;
-		projectionProps.Right = (float)props.Width;
-		projectionProps.Bottom = 0.0f;
-		projectionProps.Top = (float)props.Height;
-		projectionProps.Near = -1.0f;
-		projectionProps.Far = 1.0f;
+		projectionProps.Left	= 0.0f;
+		projectionProps.Right	= (float)props.Width;
+		projectionProps.Bottom	= 0.0f;
+		projectionProps.Top		= (float)props.Height;
+		projectionProps.Near	= -1.0f;
+		projectionProps.Far		= 1.0f;
 		s_RenderData.Projection = camera->GetProjectionMatrix(projectionProps);
 
-		s_RenderCommand->ClearColor(s_BackgroundColor.r, s_BackgroundColor.g, s_BackgroundColor.b, s_BackgroundColor.a);
-		s_RenderCommand->ClearBuffers();
+		Refresh();
 	}
 
-	void Renderer::DrawQuad(const glm::vec3& pos, const glm::vec3& size, const glm::vec4& color, float angle)
+	void Renderer::DrawQuad(const QuadData& quad)
 	{
-		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
-		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
-		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+		bool rotated = quad.RotatedAngle != 0.0f;
+
+		glm::mat4 transform = glm::translate(s_RenderData.Model, quad.Position);
+		glm::mat4 scale		= glm::scale(s_RenderData.Model, quad.Size);
+		glm::mat4 rotation	= glm::rotate(s_RenderData.Model, glm::radians(quad.RotatedAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 		for (int i = 0; i < 4; i++)
 		{
-			glm::vec4 vertex = transform * scale * s_RenderData.QuadVertices[i];
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.x;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.y;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.z;
+			glm::mat4 factor = transform;
+			factor *= scale;
+			if (rotated)
+				factor *= rotation;
 
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = color.r;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = color.g;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = color.b;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = color.a;
+			glm::vec4 vertex = factor * s_RenderData.QuadVertices[i];
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.x;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.y;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.z;
 
-			s_RenderData.NextVertex += 2;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = -1.0f; // tex index -1 means it is a color
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.r;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.g;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.b;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.a;
+
+			s_RenderData.NextQuadVertex += 2;
+			
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = -1.0f; // tex index -1 means it is a color
+			
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = (float)quad.TilingFactor;
 		}
 
 		s_RenderData.RendererStat.QuadsDrawn++;
 	}
 
-	void Renderer::DrawTexturedQuad(const glm::vec3& pos, const glm::vec3& size, const std::shared_ptr<SubTexture> tex, float angle, const glm::vec4& tint)
+	void Renderer::DrawTexturedQuad(const QuadData& quad)
 	{
-		tex->Activate();
-		s_RenderData.TextureCoordinates = tex->GetTexCoords();
-		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
-		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
-		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+		bool subTexture = quad.Texture == nullptr;
+		bool rotated = quad.RotatedAngle != 0.0f;
+		if (subTexture)
+		{
+			quad.SubTexture->Activate();
+			s_RenderData.TextureCoordinates = quad.SubTexture->GetTexCoords();
+		}
+		else
+		{
+			quad.Texture->Activate();
+			s_RenderData.TextureCoordinates = quad.Texture->GetTexCoords();
+		}
+
+		glm::mat4 transform = glm::translate(s_RenderData.Model, quad.Position);
+		glm::mat4 scale = glm::scale(s_RenderData.Model, quad.Size);
+		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(quad.RotatedAngle), glm::vec3(1.0f, 0.0f, 0.0f));
 		for (int i = 0; i < 4; i++)
 		{
-			glm::vec4 vertex = transform * rotation * scale * s_RenderData.QuadVertices[i];
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.x;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.y;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.z;
+			glm::mat4 factor = transform;
+			factor *= scale;
+			if (rotated)
+				factor *= rotation;
 
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.r;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.g;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.b;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.a;
+			glm::vec4 vertex = factor * s_RenderData.QuadVertices[i];
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.x;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.y;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.z;
 
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].x;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].y;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = (float)tex->GetTextureSlot();
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.r;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.g;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.b;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.a;
+
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = s_RenderData.TextureCoordinates[i].x;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = s_RenderData.TextureCoordinates[i].y;
+
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = (float)(subTexture ? quad.SubTexture->GetTextureSlot() : quad.Texture->GetTextureSlot());
+			
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = (float)quad.TilingFactor;
 		}
 
 		s_RenderData.RendererStat.QuadsDrawn++;
 	}
 
-	void Renderer::DrawTexturedQuad(const glm::vec3& pos, const glm::vec3& size, const std::shared_ptr<Texture> tex, float angle, const glm::vec4& tint)
+	void Renderer::DrawLine(const LineData& line)
 	{
-		tex->Activate();
-		s_RenderData.TextureCoordinates = tex->GetTexCoords();
-		glm::mat4 transform = glm::translate(s_RenderData.Model, pos);
-		glm::mat4 scale = glm::scale(s_RenderData.Model, size);
-		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
-		for (int i = 0; i < 4; i++)
+		if (line.LineWidth != s_RenderData.LineWidth)
 		{
-			glm::vec4 vertex = transform * rotation * scale * s_RenderData.QuadVertices[i];
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.x;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.y;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = vertex.z;
-
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.r;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.g;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.b;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = tint.a;
-
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].x;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = s_RenderData.TextureCoordinates[i].y;
-			s_RenderData.Vertices[s_RenderData.NextVertex++] = (float)tex->GetTextureSlot();
+			s_RenderData.LineWidth = line.LineWidth;
+			s_LineRenderCommand->SetLineWidth(s_RenderData.LineWidth);
 		}
 
-		s_RenderData.RendererStat.QuadsDrawn++;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Point1.x;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Point1.y;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Point1.z;
+
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.r;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.g;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.b;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.a;
+
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Point2.x;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Point2.y;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Point2.z;
+
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.r;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.g;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.b;
+		s_RenderData.LineVertexData[s_RenderData.NextLineVertex++] = line.Color.a;
+
+		s_RenderData.RendererStat.LinesDrawn++;
 	}
 
 	void Renderer::Flush(const std::shared_ptr<TextureManager> texManager)
 	{
-		s_RenderData.SquareShader->Bind();
-		s_RenderData.SquareShader->UploadUniformMat4("u_Model", s_RenderData.Model);
-		s_RenderData.SquareShader->UploadUniformMat4("u_View", s_RenderData.View);
-		s_RenderData.SquareShader->UploadUniformMat4("u_Projection", s_RenderData.Projection);
+		if (s_RenderData.NextLineVertex > 0)
+		{
+			s_RenderData.LineShader->Bind();
+			s_RenderData.LineShader->UploadUniformMat4("u_Model", s_RenderData.Model);
+			s_RenderData.LineShader->UploadUniformMat4("u_View", s_RenderData.View);
+			s_RenderData.LineShader->UploadUniformMat4("u_Projection", s_RenderData.Projection);
 
-		s_RenderData.SquareShader->UploadUniformIntArray("u_Textures", texManager->GetTextureSlotData().data(), (uint32_t)texManager->GetTextureSlotData().size());
-		s_RenderCommand->Draw();
-		s_RenderData.SquareShader->Unbind();
-		memset(s_RenderData.Vertices, 0, s_RenderData.NextVertex * sizeof(float));
-		s_RenderData.NextVertex = 0;
+			s_LineRenderCommand->Draw(Lines);
+			s_RenderData.LineShader->Unbind();
+			memset(s_RenderData.LineVertexData, 0, s_RenderData.NextLineVertex * sizeof(float));
+			s_RenderData.NextLineVertex = 0;
 
-		s_RenderData.RendererStat.DrawCalls++;
+			s_RenderData.RendererStat.DrawCalls++;
+		}
+
+		if (s_RenderData.NextQuadVertex > 0)
+		{
+			s_RenderData.QuadShader->Bind();
+			s_RenderData.QuadShader->UploadUniformMat4("u_Model", s_RenderData.Model);
+			s_RenderData.QuadShader->UploadUniformMat4("u_View", s_RenderData.View);
+			s_RenderData.QuadShader->UploadUniformMat4("u_Projection", s_RenderData.Projection);
+
+			s_RenderData.QuadShader->UploadUniformIntArray("u_Textures", texManager->GetTextureSlotData().data(), (uint32_t)texManager->GetTextureSlotData().size());
+			s_QuadRenderCommand->Draw(Triangles);
+			s_RenderData.QuadShader->Unbind();
+			memset(s_RenderData.QuadVertexData, 0, s_RenderData.NextQuadVertex * sizeof(float));
+			s_RenderData.NextQuadVertex = 0;
+
+			s_RenderData.RendererStat.DrawCalls++;
+		}
 	}
 
 	void Renderer::SetPolygonMode(bool enabled)
@@ -256,7 +294,7 @@ namespace zeus
 		else
 			s_RenderData.RendererState &= ~PolygonMode;
 
-		s_RenderCommand->SetState(s_RenderData.RendererState);
+		s_QuadRenderCommand->SetState(s_RenderData.RendererState);
 	}
 
 	void Renderer::SetDepthTest(bool enabled)
@@ -266,7 +304,7 @@ namespace zeus
 		else
 			s_RenderData.RendererState &= ~DepthTest;
 
-		s_RenderCommand->SetState(s_RenderData.RendererState);
+		s_QuadRenderCommand->SetState(s_RenderData.RendererState);
 	}
 
 	void Renderer::SetColorBlending(bool enabled)
@@ -276,7 +314,7 @@ namespace zeus
 		else
 			s_RenderData.RendererState &= ~ColorBlend;
 
-		s_RenderCommand->SetState(s_RenderData.RendererState);
+		s_QuadRenderCommand->SetState(s_RenderData.RendererState);
 	}
 
 	void Renderer::SetBackgroundColor(const glm::vec4& color)
@@ -289,5 +327,11 @@ namespace zeus
 		RendererStatistics tmp = s_RenderData.RendererStat;
 		memset(&s_RenderData.RendererStat, 0, sizeof(RendererStatistics));
 		return tmp;
+	}
+
+	void Renderer::Refresh()
+	{
+		s_QuadRenderCommand->ClearColor(s_BackgroundColor.r, s_BackgroundColor.g, s_BackgroundColor.b, s_BackgroundColor.a);
+		s_QuadRenderCommand->ClearBuffers();
 	}
 }

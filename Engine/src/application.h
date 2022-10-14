@@ -1,6 +1,8 @@
 #pragma once
 
-#include "core.h"
+#include <string>
+#include <memory>
+
 #include "layer_queue.h"
 #include "window/window.h"
 #include "glm/glm.hpp"

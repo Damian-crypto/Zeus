@@ -150,6 +150,13 @@
       <Project>{18a5be9f-a0a6-44ef-8ca1-c2c1054c4e37}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\levels\testlevel.data" />
+    <None Include="assets\shaders\line_fragment_shader.glsl" />
+    <None Include="assets\shaders\line_vertex_shader.glsl" />
+    <None Include="assets\shaders\quad_fragment_shader.glsl" />
+    <None Include="assets\shaders\quad_vertex_shader.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

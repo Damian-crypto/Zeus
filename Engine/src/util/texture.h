@@ -8,16 +8,25 @@
 
 namespace zeus
 {
+	enum class ColorAttachment
+	{
+		RGB = 0,
+		RGBA,
+		INT
+	};
+
 	class Texture
 	{
 	protected:
-		uint32_t m_TextureID = 0;
-		uint32_t m_Width = 1280;
-		uint32_t m_Height = 720;
-		uint32_t m_TextureSlot = 0;
-		uint32_t m_Cellsize = 16;
-		bool m_Spritesheet = false;
-		bool m_Pixelated = false;
+		uint32_t m_TextureID	= 0;
+		uint32_t m_Width		= 1280;
+		uint32_t m_Height		= 720;
+		uint32_t m_TextureSlot	= 0;
+		uint32_t m_Cellsize		= 16;
+		int m_InternalFormat	= 0;
+		int m_PixelFormat		= 0;
+		bool m_Spritesheet		= false;
+		bool m_Pixelated		= false;
 
 		std::vector<glm::vec2> m_TexCoords = {
 			{ 0.0f, 0.0f },
@@ -32,6 +41,7 @@ namespace zeus
 
 	public:
 		static std::shared_ptr<Texture> CreateTexture(std::string_view filepath);
+		static std::shared_ptr<Texture> CreateTexture();
 
 		virtual void Bind(uint32_t slot = 0) = 0;
 		virtual void Unbind() const = 0;
@@ -44,6 +54,8 @@ namespace zeus
 		uint32_t GetTextureSlot() const { return m_TextureSlot; }
 		uint32_t GetCellSize() const { return m_Cellsize; }
 		const std::string& GetFilePath() const { return m_Filepath; }
+
+		void SetInternalFormat(ColorAttachment colorFormat);
 	};
 
 	class SubTexture

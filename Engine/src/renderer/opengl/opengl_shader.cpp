@@ -1,3 +1,4 @@
+#include "corepch.h"
 #include "opengl_shader.h"
 
 #include "glad/gl.h"
@@ -26,29 +27,22 @@ namespace zeus
 		return "unknown";
 	}
 
-	OpenGLShader::OpenGLShader(const std::string& name, const std::string& filename)
-	{
-		m_Name = name;
-
-		std::string shaderSrc = ReadFile(filename);
-		auto shaderSources = PreProcess(shaderSrc);
-		Compile(shaderSources);
-
-		// Extracting shader name
-		auto lastSlash = filename.find_last_of("/\\");
-		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-		auto lastDot = filename.rfind('.');
-		auto count = lastDot == std::string::npos ? filename.size() - lastSlash : lastDot - lastSlash;
-		m_Name = filename.substr(lastSlash, count);
-	}
-
-	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
+	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment, bool fromFile)
 	{
 		m_Name = name;
 
 		std::unordered_map<uint32_t, std::string> sources;
-		sources[GL_VERTEX_SHADER] = vertexSrc;
-		sources[GL_FRAGMENT_SHADER] = fragmentSrc;
+		if (fromFile)
+		{
+			sources[GL_VERTEX_SHADER] = ReadFile(vertex);
+			sources[GL_FRAGMENT_SHADER] = ReadFile(fragment);
+		}
+		else
+		{
+			sources[GL_VERTEX_SHADER] = vertex;
+			sources[GL_FRAGMENT_SHADER] = fragment;
+		}
+
 		Compile(sources);
 	}
 

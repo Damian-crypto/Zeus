@@ -1,7 +1,8 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "../core.h"
+
+#include <memory>
 
 namespace zeus
 {
@@ -18,8 +19,7 @@ namespace zeus
 		virtual int GetUniformLocation(const std::string& name) = 0;
 
 	public:
-		static std::shared_ptr<Shader> CreateShader(const std::string name, const std::string& file);
-		static std::shared_ptr<Shader> CreateShader(const std::string name, const std::string& vertex, const std::string& fragment);
+		static std::shared_ptr<Shader> CreateShader(const std::string& name, const std::string& vertex, const std::string& fragment, bool fromFile = true);
 
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;

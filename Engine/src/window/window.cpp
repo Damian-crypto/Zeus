@@ -1,3 +1,4 @@
+#include "corepch.h"
 #include "window.h"
 
 #ifdef WINDOWING_SYSTEM_GLFW

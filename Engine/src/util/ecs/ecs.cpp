@@ -1,3 +1,4 @@
+#include "corepch.h"
 #include "ecs.h"
 
 #include "component.h"

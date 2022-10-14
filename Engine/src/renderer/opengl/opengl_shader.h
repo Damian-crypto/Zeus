@@ -1,12 +1,14 @@
 #include "renderer/shader.h"
 
+#include <string>
+#include <unordered_map>
+
 namespace zeus
 {
 	class OpenGLShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& name, const std::string& filename);
-		OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
+		OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment, bool fromFile = true);
 
 		void Compile(const std::unordered_map<uint32_t, std::string>& shaderSources);
 

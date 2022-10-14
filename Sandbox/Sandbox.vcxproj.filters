@@ -19,4 +19,11 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\levels\testlevel.data" />
+    <None Include="assets\shaders\line_fragment_shader.glsl" />
+    <None Include="assets\shaders\line_vertex_shader.glsl" />
+    <None Include="assets\shaders\quad_fragment_shader.glsl" />
+    <None Include="assets\shaders\quad_vertex_shader.glsl" />
+  </ItemGroup>
 </Project>
