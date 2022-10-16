@@ -31,16 +31,18 @@ namespace zeus
 		std::shared_ptr<Texture> Texture;
 		std::shared_ptr<SubTexture> SubTexture;
 
-		uint32_t TilingFactor{ 1u };
+		float TilingFactor = 1;
+
+		int EntityID = 1;
 
 		friend class Renderer;
 
 	public:
 		void SetPosition(const glm::vec3& position) { this->Position = position; }
-		void SetSize(const glm::vec3& size) { this->Size = size; }
-		void SetColor(const glm::vec4& color) { this->Color = color; }
-		void SetRotation(float angle) { this->RotatedAngle = angle; }
-		void SetTilingFactor(uint32_t factor) { this->TilingFactor = factor; }
+		void SetSize(const glm::vec3& size)			{ this->Size = size; }
+		void SetColor(const glm::vec4& color)		{ this->Color = color; }
+		void SetRotation(float angle)				{ this->RotatedAngle = angle; }
+		void SetTilingFactor(float factor)			{ this->TilingFactor = factor; }
 		void SetTexture(std::shared_ptr<zeus::Texture> texture)
 		{
 			this->Texture = texture;
@@ -67,8 +69,8 @@ namespace zeus
 	public:
 		void SetPoint1(const glm::vec3& point1) { this->Point1 = point1; }
 		void SetPoint2(const glm::vec3& point2) { this->Point2 = point2; }
-		void SetColor(const glm::vec4& color) { this->Color = color; }
-		void SetLineWidth(float lineWidth) { this->LineWidth = lineWidth; }
+		void SetColor(const glm::vec4& color)	{ this->Color = color; }
+		void SetLineWidth(float lineWidth)		{ this->LineWidth = lineWidth; }
 	};
 
 	class Renderer
@@ -90,8 +92,6 @@ namespace zeus
 
 	public:
 		static void Init();
-
-		static void Start();
 		static void Start(const std::shared_ptr<Camera> camera);
 		static void DrawQuad(const QuadData& quad);
 		static void DrawTexturedQuad(const QuadData& quad);

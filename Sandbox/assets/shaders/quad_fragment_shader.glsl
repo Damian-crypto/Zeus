@@ -5,22 +5,22 @@ layout (location = 1) out int a_ID;
 
 in vec4 f_Color;
 in vec2 f_TexCoord;
-in float f_TexId;
+in flat int f_TexSlot;
 in float f_TilingFactor;
+in flat int f_ID;
 
 uniform sampler2D u_Textures[8];
 
 void main()
 {
-	int texIndex = int(f_TexId);
-	if (texIndex == -1.0)
+	if (f_TexSlot == -1)
 	{
 		a_Color = f_Color;
 	}
 	else
 	{
-		a_Color = texture(u_Textures[texIndex], f_TexCoord) * f_Color;
+		a_Color = texture(u_Textures[f_TexSlot], f_TexCoord) * f_Color;
 	}
 
-	a_ID = 98;
+	a_ID = f_ID;
 }

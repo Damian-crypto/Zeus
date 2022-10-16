@@ -9,27 +9,27 @@
 #include <exception>
 #include <fstream>
 
-static constexpr int WIDTH = 1280;
+static constexpr int WIDTH	= 1280;
 static constexpr int HEIGHT = 720;
 
-const glm::vec4 RED = { 1.0f, 0.0f, 0.0f, 1.0f };
-const glm::vec4 BLUE = { 0.0f, 0.0f, 1.0f, 1.0f };
-const glm::vec4 GREEN = { 0.0f, 1.0f, 0.0f, 1.0f };
-const glm::vec4 GREY = { 0.3f, 0.3f, 0.3f, 1.0f };
+const glm::vec4 RED		= { 1.0f, 0.0f, 0.0f, 1.0f };
+const glm::vec4 BLUE	= { 0.0f, 0.0f, 1.0f, 1.0f };
+const glm::vec4 GREEN	= { 0.0f, 1.0f, 0.0f, 1.0f };
+const glm::vec4 GREY	= { 0.3f, 0.3f, 0.3f, 1.0f };
 
 static const struct DefaultOrthographicCamera
 {
-	glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 Position	= { 0.0f, 0.0f, 0.0f };
 	glm::vec3 Direction = { 0.0f, 0.0f, -1.0f };
-	glm::vec3 Right = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 Right		= { 0.0f, 0.0f, 0.0f };
 	float MovementSpeed = 30.0f;
 } defaultOrthoCamera;
 
 static const struct DefaultPerspectiveCamera
 {
-	glm::vec3 Position = { 0.0f, 0.0f, 600.0f };
+	glm::vec3 Position	= { 0.0f, 0.0f, 600.0f };
 	glm::vec3 Direction = { 0.0f, 0.0f, -1.0f };
-	glm::vec3 Right = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 Right		= { 0.0f, 0.0f, 0.0f };
 	float MovementSpeed = 0.3f;
 } defaultPerspectiveCamera;
 
@@ -38,16 +38,17 @@ struct vec2i
 	int x, y;
 };
 
-glm::vec3 spritePos{ 0.0f, 0.0f, 0.1f };
+glm::vec3 spritePos	{ 0.0f, 0.0f, 0.1f };
+glm::vec3 scaler	{ 50.0f, 50.0f, 0.0f };
+float zVal	= 0.0f;
+float angle = 0.0f;
 std::shared_ptr<zeus::TextureManager> textureManager;
-float zVal = 0.0f, angle = 0.0f;
-glm::vec3 scaler{ 50.0f, 50.0f, 0.0f };
 class SandboxLevel : public zeus::Level
 {
 private:
 	uint32_t m_LevelCols{ 0u };
 	uint32_t m_LevelRows{ 0u };
-	uint32_t m_CellSize{ 0u };
+	uint32_t m_CellSize	{ 0u };
 	std::vector<std::vector<vec2i>> m_Map;
 
 public:
@@ -65,6 +66,7 @@ public:
 		static float topBoundary	= HEIGHT - m_CellSize;
 		static float bottomBoundary = 0.0f;
 
+#if 1
 		for (int y = 0; y < m_LevelRows; y++)
 		{
 			for (int x = 0; x < m_LevelCols; x++)
@@ -84,7 +86,7 @@ public:
 				//zeus::Renderer::DrawQuad(quad);
 			}
 		}
-
+#endif
 		quad.SetPosition(spritePos);
 		quad.SetSize(scaler);
 		quad.SetRotation(angle);
@@ -102,18 +104,20 @@ public:
 		// Reading columns count
 		getline(file, line);
 		size_t beginPos = line.find(':');
-		size_t endPos = line.size();
-		m_LevelCols = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		size_t endPos	= line.size();
+		m_LevelCols		= std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		
 		// Reading rows count
 		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
+		beginPos	= line.find(':');
+		endPos		= line.size();
 		m_LevelRows = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		
 		// Reading cell size
 		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
-		m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+		beginPos	= line.find(':');
+		endPos		= line.size();
+		m_CellSize	= std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
 		
 		// Escape blank line
 		std::getline(file, line);
@@ -300,26 +304,30 @@ public:
 		}
 	}
 
+	bool showGrid = true;
 	void OnRender() override
 	{
-		RenderUI();
-
-		m_Framebuffer->Activate();
+		//m_Framebuffer->Activate();
 		zeus::Renderer::Start(m_Camera);
 
 		m_LevelManager.SetActiveLevel(1);
 		m_LevelManager.Draw();
 
-		DrawGrid();
+		if (showGrid)
+		{
+			DrawGrid();
+		}
 		
 		zeus::Renderer::Flush(textureManager);
 
-		m_Framebuffer->Unbind();
+		//m_Framebuffer->Unbind();
 
-		zeus::Renderer::Refresh();
+		//zeus::Renderer::Refresh();
+		
+		RenderUI();
 
 		ImVec2 pos;
-		ImGui::Begin("viewport");
+		ImGui::Begin("Viewport");
 		{
 			pos = ImGui::GetMousePos();
 			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
@@ -337,6 +345,8 @@ public:
 			int id = m_Framebuffer->ReadID(1, pos.x, HEIGHT - pos.y);
 
 			ImGui::Text("%f %f: %d", pos.x, pos.y, id);
+
+			ImGui::Checkbox("show grid", &showGrid);
 			ImGui::End();
 		}
 	}
@@ -364,7 +374,7 @@ public:
 
 	void RenderUI()
 	{
-#if 0
+#if 1
 		ImGui::Begin("Tiles");
 		{
 			ImTextureID id = 0;

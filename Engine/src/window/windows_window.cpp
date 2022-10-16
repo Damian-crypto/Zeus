@@ -4,6 +4,7 @@
 #include "event/mouse_event.h"
 #include "event/key_event.h"
 #include "application.h"
+#include "core.h"
 
 namespace zeus
 {
@@ -13,25 +14,44 @@ namespace zeus
 
 		if (!glfwInit())
 		{
-			__debugbreak();
+			throw std::runtime_error("Runtime Error: Windowing system not initialized!");
 		}
 
 		//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if DEBUG_MODE
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
 
 		m_NativeWindow = glfwCreateWindow((int)m_Properties.Width, (int)m_Properties.Height, m_Properties.Title.c_str(), nullptr, nullptr);
 		if (m_NativeWindow == nullptr)
 		{
-			__debugbreak();
+			throw std::runtime_error("Runtime Error: Window creation failed!");
 		}
 
 		glfwMakeContextCurrent(m_NativeWindow);
 
 		if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress))
 		{
-			__debugbreak();
+			throw std::runtime_error("Runtime Error: OpenGL function binding failed!");
 		}
+
+#if DEBUG_MODE
+		int contextFlags = 0;
+		glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
+
+		if (contextFlags & GL_CONTEXT_FLAG_DEBUG_BIT)
+		{
+			std::cout << "Debug context created!\n";
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback([](unsigned int source, unsigned int type, unsigned int id, unsigned int severity, int length, const char* msg, const void* user) {
+				std::cout << "[GLFW DEBUG]: " << msg << '\n';
+			}, nullptr);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+		}
+#endif
 
 		glfwSetMouseButtonCallback(m_NativeWindow, [](GLFWwindow* window, int button, int action, int mods) {
 			switch (action)

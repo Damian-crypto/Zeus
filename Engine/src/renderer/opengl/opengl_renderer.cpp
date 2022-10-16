@@ -66,8 +66,22 @@ namespace zeus
 		{
 			glEnableVertexAttribArray(i);
 			int elements = VertexBufferLayout::GetElementsOfAttribute(attributes[i]);
-			unsigned int type = GetTypeOpenGL(attributes[i]);
-			glVertexAttribPointer(i, elements, type, GL_FALSE, strideSize, (const void*)offset);
+			switch (attributes[i])
+			{
+			case DataType::Int:
+			case DataType::Int2:
+			case DataType::Int3:
+			case DataType::Int4:
+				glVertexAttribIPointer(i, elements, GL_INT, strideSize, (const void*)offset);
+				break;
+			case DataType::Float:
+			case DataType::Float2:
+			case DataType::Float3:
+			case DataType::Float4:
+				glVertexAttribPointer(i, elements, GL_FLOAT, GL_FALSE, strideSize, (const void*)offset);
+				break;
+			}
+
 			offset += VertexBufferLayout::GetTypeSize(attributes[i]);
 		}
 	}

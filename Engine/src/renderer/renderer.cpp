@@ -10,6 +10,7 @@
 #include "util/camera.h"
 #include "util/texture_manager.h"
 #include "application.h"
+#include "core.h"
 
 namespace zeus
 {
@@ -17,6 +18,17 @@ namespace zeus
 	RenderCommand* Renderer::s_LineRenderCommand = new OpenGLRenderer;
 
 	glm::vec4 Renderer::s_BackgroundColor = glm::vec4(1.0f);
+
+	struct QuadVertex
+	{
+		glm::vec3 Position;
+		glm::vec4 Color;
+		glm::vec2 TextureCoords;
+
+		int TextureSlot;
+		float TilingFactor;
+		int EntityID;
+	};
 
 	struct RenderData
 	{
@@ -27,7 +39,7 @@ namespace zeus
 		////////////////////////////////////////////
 		// Data for rendering quads ////////////////
 		////////////////////////////////////////////
-		float* QuadVertexData		= nullptr;
+		QuadVertex* QuadVertexData	= nullptr;
 		uint32_t* QuadIndexData		= nullptr;
 
 		std::shared_ptr<Shader> QuadShader;
@@ -95,11 +107,12 @@ namespace zeus
 			DataType::Float3,
 			DataType::Float4,
 			DataType::Float2,
+			DataType::Int,
 			DataType::Float,
-			DataType::Float
+			DataType::Int
 		};
 
-		s_RenderData.QuadVertexData = new float[MaxQuadVertices * quadVertexLayout.GetStrideSize()] { 0.0f };
+		s_RenderData.QuadVertexData = new QuadVertex[MaxQuadVertices];
 
 		VertexArray quadVertexArray(quadVertexLayout, MaxQuadVertices, s_RenderData.QuadVertexData, MaxQuadIndices, s_RenderData.QuadIndexData);
 
@@ -148,9 +161,10 @@ namespace zeus
 	{
 		bool rotated = quad.RotatedAngle != 0.0f;
 
-		glm::mat4 transform = glm::translate(s_RenderData.Model, quad.Position);
+		// Transformation order: scale -> rotate -> transform
 		glm::mat4 scale		= glm::scale(s_RenderData.Model, quad.Size);
 		glm::mat4 rotation	= glm::rotate(s_RenderData.Model, glm::radians(quad.RotatedAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 transform = glm::translate(s_RenderData.Model, quad.Position);
 		for (int i = 0; i < 4; i++)
 		{
 			glm::mat4 factor = transform;
@@ -158,44 +172,42 @@ namespace zeus
 			if (rotated)
 				factor *= rotation;
 
-			glm::vec4 vertex = factor * s_RenderData.QuadVertices[i];
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.x;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.y;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.z;
-
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.r;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.g;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.b;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.a;
-
-			s_RenderData.NextQuadVertex += 2;
-			
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = -1.0f; // tex index -1 means it is a color
-			
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = (float)quad.TilingFactor;
+			glm::vec4 position = factor * s_RenderData.QuadVertices[i];
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].Position = position;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].Color = quad.Color;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureCoords = { 0.0f, 0.0f };
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureSlot = -1.0f; // tex index -1 means it is a color
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TilingFactor = quad.TilingFactor;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].EntityID = quad.EntityID;
+			s_RenderData.NextQuadVertex++;
 		}
 
 		s_RenderData.RendererStat.QuadsDrawn++;
 	}
 
+	float texSlot = 0;
+	bool subTexture = false, rotated = false;
 	void Renderer::DrawTexturedQuad(const QuadData& quad)
 	{
-		bool subTexture = quad.Texture == nullptr;
-		bool rotated = quad.RotatedAngle != 0.0f;
+		subTexture = quad.Texture == nullptr;
+		rotated = quad.RotatedAngle != 0.0f;
 		if (subTexture)
 		{
 			quad.SubTexture->Activate();
+			texSlot = (float)quad.SubTexture->GetTextureSlot();
 			s_RenderData.TextureCoordinates = quad.SubTexture->GetTexCoords();
 		}
 		else
 		{
 			quad.Texture->Activate();
+			texSlot = (float)quad.Texture->GetTextureSlot();
 			s_RenderData.TextureCoordinates = quad.Texture->GetTexCoords();
 		}
 
-		glm::mat4 transform = glm::translate(s_RenderData.Model, quad.Position);
+		// Transformation order: scale -> rotate -> transform
 		glm::mat4 scale = glm::scale(s_RenderData.Model, quad.Size);
-		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(quad.RotatedAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 rotation = glm::rotate(s_RenderData.Model, glm::radians(quad.RotatedAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 transform = glm::translate(s_RenderData.Model, quad.Position);
 		for (int i = 0; i < 4; i++)
 		{
 			glm::mat4 factor = transform;
@@ -203,22 +215,14 @@ namespace zeus
 			if (rotated)
 				factor *= rotation;
 
-			glm::vec4 vertex = factor * s_RenderData.QuadVertices[i];
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.x;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.y;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = vertex.z;
-
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.r;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.g;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.b;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = quad.Color.a;
-
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = s_RenderData.TextureCoordinates[i].x;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = s_RenderData.TextureCoordinates[i].y;
-
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = (float)(subTexture ? quad.SubTexture->GetTextureSlot() : quad.Texture->GetTextureSlot());
-			
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex++] = (float)quad.TilingFactor;
+			glm::vec4 position = factor * s_RenderData.QuadVertices[i];
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].Position = position;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].Color = quad.Color;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureCoords = s_RenderData.TextureCoordinates[i];
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureSlot = texSlot;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TilingFactor = quad.TilingFactor;
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].EntityID = quad.EntityID;
+			s_RenderData.NextQuadVertex++;
 		}
 
 		s_RenderData.RendererStat.QuadsDrawn++;
@@ -280,7 +284,7 @@ namespace zeus
 			s_RenderData.QuadShader->UploadUniformIntArray("u_Textures", texManager->GetTextureSlotData().data(), (uint32_t)texManager->GetTextureSlotData().size());
 			s_QuadRenderCommand->Draw(Triangles);
 			s_RenderData.QuadShader->Unbind();
-			memset(s_RenderData.QuadVertexData, 0, s_RenderData.NextQuadVertex * sizeof(float));
+			memset(s_RenderData.QuadVertexData, 0, s_RenderData.NextQuadVertex * sizeof(QuadVertex));
 			s_RenderData.NextQuadVertex = 0;
 
 			s_RenderData.RendererStat.DrawCalls++;
