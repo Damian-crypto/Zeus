@@ -35,4 +35,15 @@ namespace zeus
 	{
 		return { m_Xoffset, m_Yoffset };
 	}
+
+	MouseReleasedEvent::MouseReleasedEvent(int button)
+		: m_Button(button)
+	{
+		m_Type = EventType::MouseReleased;
+	}
+
+	uint32_t MouseReleasedEvent::GetMouseButton()
+	{
+		return m_Button;
+	}
 }

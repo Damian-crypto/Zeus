@@ -62,6 +62,12 @@ namespace zeus
 					Application::GetInstance()->OnEvent(evt);
 					break;
 				}
+				case GLFW_RELEASE:
+				{
+					MouseReleasedEvent evt(button);
+					Application::GetInstance()->OnEvent(evt);
+					break;
+				}
 			}
 		});
 

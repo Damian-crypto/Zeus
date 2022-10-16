@@ -75,21 +75,22 @@ namespace zeus
 			throw std::runtime_error("Runtime Error: Accessing invalid texture!");
 		}
 
-		std::shared_ptr<SubTexture> subTexture = nullptr;
-
-		uint32_t texIdx = m_Textures[name.data()]->m_TextureID * 10000 + xCoord * 1000 + yCoord * 100;
-		if (m_SubTextures[texIdx] != nullptr)
+		if (xCoord != -1 && yCoord != -1)
 		{
-			return m_SubTextures[texIdx];
-		}
-		else
-		{
-			auto& texture = m_Textures[name.data()];
-			m_SubTextures[texIdx] = SubTexture::CreateSubTexture(texture, xCoord, yCoord, texture->GetCellSize());
-			subTexture = m_SubTextures[texIdx];
+			uint32_t texIdx = m_Textures[name.data()]->m_TextureID * 10000 + xCoord * 1000 + yCoord * 100;
+			if (m_SubTextures[texIdx] != nullptr)
+			{
+				return m_SubTextures[texIdx];
+			}
+			else
+			{
+				auto& texture = m_Textures[name.data()];
+				m_SubTextures[texIdx] = SubTexture::CreateSubTexture(texture, xCoord, yCoord, texture->GetCellSize());
+				return m_SubTextures[texIdx];
+			}
 		}
 
-		return subTexture;
+		return nullptr;
 	}
 
 	void TextureManager::RemoveTexture(std::string_view name)

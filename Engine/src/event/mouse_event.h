@@ -16,6 +16,17 @@ namespace zeus
 		uint32_t GetMouseButton();
 	};
 
+	class MouseReleasedEvent : public Event
+	{
+	protected:
+		int m_Button;
+
+	public:
+		MouseReleasedEvent(int button);
+
+		uint32_t GetMouseButton();
+	};
+
 	class MouseMovedEvent : public Event
 	{
 	protected:

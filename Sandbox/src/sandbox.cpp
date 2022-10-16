@@ -33,23 +33,22 @@ static const struct DefaultPerspectiveCamera
 	float MovementSpeed = 0.3f;
 } defaultPerspectiveCamera;
 
-struct vec2i
-{
-	int x, y;
-};
-
 glm::vec3 spritePos	{ 0.0f, 0.0f, 0.1f };
 glm::vec3 scaler	{ 50.0f, 50.0f, 0.0f };
+glm::bvec3 mouseButtons{ false };
 float zVal	= 0.0f;
 float angle = 0.0f;
 std::shared_ptr<zeus::TextureManager> textureManager;
 class SandboxLevel : public zeus::Level
 {
 private:
+	std::string m_LevelPath;
+
 	uint32_t m_LevelCols{ 0u };
 	uint32_t m_LevelRows{ 0u };
 	uint32_t m_CellSize	{ 0u };
-	std::vector<std::vector<vec2i>> m_Map;
+
+	std::vector<glm::ivec2> m_Map;
 
 public:
 	void OnStart() override
@@ -66,11 +65,11 @@ public:
 		static float topBoundary	= HEIGHT - m_CellSize;
 		static float bottomBoundary = 0.0f;
 
-#if 1
 		for (int y = 0; y < m_LevelRows; y++)
 		{
 			for (int x = 0; x < m_LevelCols; x++)
 			{
+				int idx = x + y * m_LevelCols;
 				float xx = x * gap - spritePos.x + 32.0f;
 				float yy = y * gap - spritePos.y - 32.0f;
 
@@ -80,24 +79,68 @@ public:
 				quad.SetPosition({ xx, yy, 0.0f });
 				quad.SetSize({ m_CellSize, m_CellSize, 0.0f });
 				quad.SetRotation(0.0f);
-				quad.SetSubTexture(textureManager->GetSubTexture("building_sheet", m_Map[y][x].x, m_Map[y][x].y));
+				quad.SetSubTexture(textureManager->GetSubTexture("building_sheet", m_Map[idx].x, m_Map[idx].y));
+				quad.SetEntityID(idx);
 
 				zeus::Renderer::DrawTexturedQuad(quad);
 				//zeus::Renderer::DrawQuad(quad);
 			}
 		}
-#endif
+
 		quad.SetPosition(spritePos);
 		quad.SetSize(scaler);
 		quad.SetRotation(angle);
+		quad.SetEntityID(2546);
 		quad.SetTexture(textureManager->GetTexture("wood_tex"));
 
 		zeus::Renderer::DrawTexturedQuad(quad);
 	}
 
+	std::vector<glm::ivec2>& GetLevelMap()
+	{
+		return m_Map;
+	}
+
+	void SaveLevel()
+	{
+		std::ofstream file(m_LevelPath, std::ios_base::out);
+
+		std::string line;
+
+		// Writing columns count
+		line = "cols: " + std::to_string(m_LevelCols);
+		file << line << '\n';
+
+		// Reading rows count
+		line = "rows: " + std::to_string(m_LevelRows);
+		file << line << '\n';
+
+		// Reading cell size
+		line = "cellsize: " + std::to_string(m_CellSize);
+		file << line << '\n';
+
+		// Escape blank line
+		file << '\n';
+
+		// Reading map
+		int id = 0;
+		for (int y = 0; y < m_LevelRows; y++)
+		{
+			for (int x = 0; x < m_LevelCols; x++)
+			{
+				id = x + y * m_LevelCols;
+				file << "(" << m_Map[id].x << ", " << m_Map[id].y << ") ";
+			}
+			file << '\n';
+		}
+		file << '\n';
+	}
+
 	void LoadLevel(const std::string& filepath)
 	{
-		std::ifstream file(filepath);
+		m_LevelPath = filepath;
+
+		std::ifstream file(m_LevelPath);
 
 		std::string line;
 
@@ -126,7 +169,6 @@ public:
 		while (std::getline(file, line))
 		{
 			size_t lastPos = 0u;
-			std::vector<vec2i> tmp;
 			for (size_t k = 0; k < line.size(); k++)
 			{
 				beginPos = line.find('(', lastPos);
@@ -136,13 +178,11 @@ public:
 				int x = stoi(line.substr(beginPos + 1, midPos - beginPos - 1));
 				int y = stoi(line.substr(midPos + 1, endPos - midPos - 1));
 
-				tmp.push_back({ x, y });
+				m_Map.push_back({ x, y });
 
 				lastPos = endPos + 1;
 				k = lastPos;
 			}
-
-			m_Map.push_back(tmp);
 		}
 	}
 };
@@ -154,6 +194,8 @@ private:
 
 	bool m_Keys[65536] = { false };
 	bool m_CameraMode = false;
+
+	glm::uvec2 m_SelectedTexture{ -1, -1 };
 
 	std::mt19937 mt;
 	std::uniform_int_distribution<int> dist{ 0, 255 };
@@ -307,7 +349,7 @@ public:
 	bool showGrid = true;
 	void OnRender() override
 	{
-		//m_Framebuffer->Activate();
+		m_Framebuffer->Activate();
 		zeus::Renderer::Start(m_Camera);
 
 		m_LevelManager.SetActiveLevel(1);
@@ -320,20 +362,39 @@ public:
 		
 		zeus::Renderer::Flush(textureManager);
 
-		//m_Framebuffer->Unbind();
+		m_Framebuffer->Unbind();
 
-		//zeus::Renderer::Refresh();
+		zeus::Renderer::Refresh();
 		
 		RenderUI();
 
-		ImVec2 pos;
+		ImVec2 pos = ImGui::GetMousePos();
+		static auto& tmpMap = ((std::shared_ptr<SandboxLevel>&)m_LevelManager.GetActiveLevel())->GetLevelMap();
 		ImGui::Begin("Viewport");
 		{
-			pos = ImGui::GetMousePos();
-			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
-			const auto& [sX, sY] = ImGui::GetWindowPos();
-			pos.x -= sX + windowOffset.x;
-			pos.y -= sY + windowOffset.y;
+			if (ImGui::IsWindowFocused())
+			{
+				const auto& windowOffset = ImGui::GetWindowContentRegionMin();
+				const auto& windowMax = ImGui::GetWindowContentRegionMax();
+				const auto& [sX, sY] = ImGui::GetWindowPos();
+				pos.x -= sX + windowOffset.x;
+				pos.y -= sY + windowOffset.y;
+
+				if (windowOffset.x < pos.x && windowOffset.y < pos.y && windowMax.x > pos.x && windowMax.y > pos.y)
+				{
+					int id = m_Framebuffer->ReadID(1, pos.x, HEIGHT - pos.y);
+
+					if (mouseButtons[MOUSE_RIGHT])
+					{
+						tmpMap[id] = { -1, -1 };
+					}
+
+					if (mouseButtons[MOUSE_LEFT])
+					{
+						tmpMap[id] = m_SelectedTexture;
+					}
+				}
+			}
 
 			const auto& tex = m_Framebuffer->GetAttachedTextures()[0];
 			ImGui::Image(reinterpret_cast<void*>(tex->GetTextureID()), ImVec2{ WIDTH, HEIGHT }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
@@ -345,6 +406,11 @@ public:
 			int id = m_Framebuffer->ReadID(1, pos.x, HEIGHT - pos.y);
 
 			ImGui::Text("%f %f: %d", pos.x, pos.y, id);
+
+			if (ImGui::Button("Save Level"))
+			{
+				((std::shared_ptr<SandboxLevel>&)m_LevelManager.GetActiveLevel())->SaveLevel();
+			}
 
 			ImGui::Checkbox("show grid", &showGrid);
 			ImGui::End();
@@ -386,14 +452,15 @@ public:
 				{
 					if (x % windowWidth != 0)
 						ImGui::SameLine();
-					auto tex = textureManager->GetSubTexture("building_sheet", x, y);
+					const auto& tex = textureManager->GetSubTexture("building_sheet", x, y);
 					id = (ImTextureID)tex->GetTextureID();
 					bottomRight = *(ImVec2*)&tex->GetTexCoords()[1];
 					topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
-					ImGui::PushID(x * 57 + y);
+					int texID = x * 57 + y;
+					ImGui::PushID(texID);
 					if (ImGui::ImageButton(id, ImVec2(16, 16), topLeft, bottomRight))
 					{
-						std::cout << x << ", " << y << "\n";
+						m_SelectedTexture = { x, y };
 					}
 					ImGui::PopID();
 				}
@@ -471,6 +538,17 @@ public:
 			auto [x, y] = zeus::Input::GetMousePosition();
 			auto mouseEvent = (zeus::MousePressedEvent&)evt;
 
+			mouseButtons[mouseEvent.GetMouseButton()] = true;
+
+			return true;
+		};
+
+		std::function<bool()> mouseReleased = [&]() -> bool {
+			auto [x, y] = zeus::Input::GetMousePosition();
+			auto mouseEvent = (zeus::MouseReleasedEvent&)evt;
+
+			mouseButtons[mouseEvent.GetMouseButton()] = false;
+
 			return true;
 		};
 
@@ -520,6 +598,7 @@ public:
 		};
 
 		dispatcher.Dispatch(zeus::EventType::MousePressed, mousePressed);
+		dispatcher.Dispatch(zeus::EventType::MouseReleased, mouseReleased);
 		dispatcher.Dispatch(zeus::EventType::MouseScrolled, mouseScrolled);
 		dispatcher.Dispatch(zeus::EventType::MouseMoved, mouseMoved);
 		dispatcher.Dispatch(zeus::EventType::KeyPressed, keyPressed);

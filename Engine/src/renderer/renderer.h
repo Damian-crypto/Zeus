@@ -33,7 +33,7 @@ namespace zeus
 
 		float TilingFactor = 1;
 
-		int EntityID = 1;
+		int EntityID = -1;
 
 		friend class Renderer;
 
@@ -52,6 +52,10 @@ namespace zeus
 		{
 			this->SubTexture = texture;
 			this->Texture = nullptr;
+		}
+		void SetEntityID(int id)
+		{
+			this->EntityID = id;
 		}
 	};
 
