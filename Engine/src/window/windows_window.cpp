@@ -3,6 +3,7 @@
 
 #include "event/mouse_event.h"
 #include "event/key_event.h"
+#include "util/logger.h"
 #include "application.h"
 #include "core.h"
 
@@ -43,12 +44,12 @@ namespace zeus
 
 		if (contextFlags & GL_CONTEXT_FLAG_DEBUG_BIT)
 		{
-			std::cout << "Debug context created!\n";
+			LOG_ENGINE(Trace, "Debug context created!");
 			glEnable(GL_DEBUG_OUTPUT);
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 			glDebugMessageCallback([](unsigned int source, unsigned int type, unsigned int id, unsigned int severity, int length, const char* msg, const void* user) {
-				std::cout << "[GLFW DEBUG]: " << msg << '\n';
-			}, nullptr);
+				LOG_ENGINE(Warn, "[GLFW DEBUG]: %s\n", msg);
+				}, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 		}
 #endif

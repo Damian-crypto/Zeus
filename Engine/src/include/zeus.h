@@ -16,4 +16,5 @@
 #include "..\util\ecs\ecs.h"
 #include "..\util\random.h"
 #include "..\util\level_manager.h"
+#include "..\util\logger.h"
 #include "..\renderer\framebuffer.h"

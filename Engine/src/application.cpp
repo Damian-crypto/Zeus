@@ -2,6 +2,7 @@
 #include "application.h"
 
 #include "window/window_constants.h"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -9,6 +10,8 @@ namespace zeus
 
 	Application::Application(ApplicationProperties props)
 	{
+		LOG_ENGINE(Info, "Welcome to the Zeus Engine version 1.0");
+
 		if (s_Instance != nullptr)
 		{
 			throw std::runtime_error("Application already exists!");

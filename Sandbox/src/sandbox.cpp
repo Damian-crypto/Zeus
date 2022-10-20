@@ -669,6 +669,6 @@ int main()
 	}
 	catch (std::exception e)
 	{
-		std::cerr << e.what() << std::endl;
+		LOG(Error, "%s", e.what());
 	}
 }

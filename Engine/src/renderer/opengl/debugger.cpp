@@ -50,4 +50,3 @@ void Check(const char* function, const char* file, int line)
 		throw std::runtime_error(msg);
 	}
 }
-

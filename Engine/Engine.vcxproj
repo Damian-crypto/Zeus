@@ -152,6 +152,7 @@
     <ClInclude Include="src\util\ecs\component.h" />
     <ClInclude Include="src\util\ecs\ecs.h" />
     <ClInclude Include="src\util\level_manager.h" />
+    <ClInclude Include="src\util\logger.h" />
     <ClInclude Include="src\util\random.h" />
     <ClInclude Include="src\util\imgui_ui.h" />
     <ClInclude Include="src\util\camera.h" />
@@ -196,6 +197,7 @@
     <ClCompile Include="src\renderer\opengl\opengl_framebuffer.cpp" />
     <ClCompile Include="src\util\ecs\ecs.cpp" />
     <ClCompile Include="src\util\level_manager.cpp" />
+    <ClCompile Include="src\util\logger.cpp" />
     <ClCompile Include="src\util\random.cpp" />
     <ClCompile Include="src\util\imgui_ui.cpp" />
     <ClCompile Include="src\util\camera.cpp" />
