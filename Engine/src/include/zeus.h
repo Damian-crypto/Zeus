@@ -12,8 +12,6 @@
 #include "..\util\texture_manager.h"
 #include "..\util\texture.h"
 #include "..\util\camera.h"
-#include "..\util\ecs\component.h"
-#include "..\util\ecs\ecs.h"
 #include "..\util\random.h"
 #include "..\util\level_manager.h"
 #include "..\util\logger.h"

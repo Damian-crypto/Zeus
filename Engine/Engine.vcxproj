@@ -149,8 +149,6 @@
     <ClInclude Include="src\renderer\opengl\opengl_framebuffer.h" />
     <ClInclude Include="src\core.h" />
     <ClInclude Include="src\renderer\opengl\debugger.h" />
-    <ClInclude Include="src\util\ecs\component.h" />
-    <ClInclude Include="src\util\ecs\ecs.h" />
     <ClInclude Include="src\util\level_manager.h" />
     <ClInclude Include="src\util\logger.h" />
     <ClInclude Include="src\util\random.h" />
@@ -195,7 +193,6 @@
     <ClCompile Include="src\renderer\framebuffer.cpp" />
     <ClCompile Include="src\renderer\opengl\debugger.cpp" />
     <ClCompile Include="src\renderer\opengl\opengl_framebuffer.cpp" />
-    <ClCompile Include="src\util\ecs\ecs.cpp" />
     <ClCompile Include="src\util\level_manager.cpp" />
     <ClCompile Include="src\util\logger.cpp" />
     <ClCompile Include="src\util\random.cpp" />
