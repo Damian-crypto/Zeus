@@ -33,6 +33,14 @@ static const struct DefaultPerspectiveCamera
 	float MovementSpeed = 0.3f;
 } defaultPerspectiveCamera;
 
+struct Tile
+{
+	bool IsActive = false;
+
+	zeus::SpriteComponent Sprite;
+	zeus::TransformComponent Transform;
+};
+
 glm::vec3 spritePos	{ 0.0f, 0.0f, 0.1f };
 glm::vec3 scaler	{ 50.0f, 50.0f, 0.0f };
 glm::bvec3 mouseButtons{ false };
@@ -195,8 +203,6 @@ private:
 	bool m_Keys[65536] = { false };
 	bool m_CameraMode = false;
 
-	glm::uvec2 m_SelectedTexture{ -1, -1 };
-
 	std::mt19937 mt;
 	std::uniform_int_distribution<int> dist{ 0, 255 };
 
@@ -204,6 +210,10 @@ private:
 
 	zeus::LevelManager m_LevelManager;
 	std::shared_ptr<zeus::Framebuffer> m_Framebuffer;
+
+	glm::vec2 m_CursorPos{ 0, 0 };
+
+	Tile m_DragTile;
 
 public:
 	SandboxLayer(const char* name)
@@ -347,6 +357,7 @@ public:
 	}
 
 	bool showGrid = true;
+	zeus::QuadData quad;
 	void OnRender() override
 	{
 		m_Framebuffer->Activate();
@@ -354,6 +365,16 @@ public:
 
 		m_LevelManager.SetActiveLevel(1);
 		m_LevelManager.Draw();
+
+		if (m_DragTile.IsActive)
+		{
+			const auto& sprite = m_DragTile.Sprite;
+			const auto& transform = m_DragTile.Transform;
+			quad.SetSubTexture(textureManager->GetSubTexture(sprite.TextureName, sprite.Coordinates.x, sprite.Coordinates.y));
+			quad.SetSize(transform.Scale);
+			quad.SetPosition({ m_CursorPos.x + 32.0f, HEIGHT - m_CursorPos.y - 32.0f, 0.0f });
+			zeus::Renderer::DrawTexturedQuad(quad);
+		}
 
 		if (showGrid)
 		{
@@ -369,30 +390,33 @@ public:
 		RenderUI();
 
 		ImVec2 pos = ImGui::GetMousePos();
+		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysHorizontalScrollbar;
 		static auto& tmpMap = ((std::shared_ptr<SandboxLevel>&)m_LevelManager.GetActiveLevel())->GetLevelMap();
-		ImGui::Begin("Viewport");
+		static bool p_open = false;
+		ImGui::Begin("Viewport", &p_open, flags);
 		{
-			if (ImGui::IsWindowFocused())
+			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
+			const auto& windowMax = ImGui::GetContentRegionAvail();
+			const auto& [sX, sY] = ImGui::GetWindowPos();
+			m_CursorPos.x = pos.x - (sX + windowOffset.x);
+			m_CursorPos.y = pos.y - (sY + windowOffset.y);
+
+			if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())
 			{
-				const auto& windowOffset = ImGui::GetWindowContentRegionMin();
-				const auto& windowMax = ImGui::GetWindowContentRegionMax();
-				const auto& [sX, sY] = ImGui::GetWindowPos();
-				pos.x -= sX + windowOffset.x;
-				pos.y -= sY + windowOffset.y;
+				int id = m_Framebuffer->ReadID(1, m_CursorPos.x, HEIGHT - m_CursorPos.y);
 
-				if (windowOffset.x < pos.x && windowOffset.y < pos.y && windowMax.x > pos.x && windowMax.y > pos.y)
+				if (mouseButtons[MOUSE_RIGHT] && m_DragTile.IsActive)
 				{
-					int id = m_Framebuffer->ReadID(1, pos.x, HEIGHT - pos.y);
+					tmpMap[id] = { -1, -1 };
+				}
 
-					if (mouseButtons[MOUSE_RIGHT])
-					{
-						tmpMap[id] = { -1, -1 };
-					}
+				if (mouseButtons[MOUSE_LEFT])
+					LOG_ENGINE(Trace, "clicked");
 
-					if (mouseButtons[MOUSE_LEFT])
-					{
-						tmpMap[id] = m_SelectedTexture;
-					}
+				if (mouseButtons[MOUSE_LEFT] && m_DragTile.IsActive)
+				{
+					tmpMap[id] = m_DragTile.Sprite.Coordinates;
+					m_DragTile.IsActive = false;
 				}
 			}
 
@@ -403,9 +427,9 @@ public:
 
 		ImGui::Begin("Entity");
 		{
-			int id = m_Framebuffer->ReadID(1, pos.x, HEIGHT - pos.y);
+			int id = m_Framebuffer->ReadID(1, m_CursorPos.x, HEIGHT - m_CursorPos.y);
 
-			ImGui::Text("%f %f: %d", pos.x, pos.y, id);
+			ImGui::Text("%f %f: %d", m_CursorPos.x, m_CursorPos.y, id);
 
 			if (ImGui::Button("Save Level"))
 			{
@@ -441,7 +465,9 @@ public:
 	void RenderUI()
 	{
 #if 1
-		ImGui::Begin("Tiles");
+		static bool p_open = false;
+		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysHorizontalScrollbar;
+		ImGui::Begin("Tiles", &p_open, flags);
 		{
 			ImTextureID id = 0;
 			ImVec2 bottomRight, topLeft;
@@ -458,9 +484,11 @@ public:
 					topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
 					int texID = x * 57 + y;
 					ImGui::PushID(texID);
-					if (ImGui::ImageButton(id, ImVec2(16, 16), topLeft, bottomRight))
+					if (ImGui::ImageButton(id, ImVec2(32, 32), topLeft, bottomRight))
 					{
-						m_SelectedTexture = { x, y };
+						m_DragTile.IsActive = true;
+						m_DragTile.Sprite.TextureName = "building_sheet";
+						m_DragTile.Sprite.Coordinates = { x, y };
 					}
 					ImGui::PopID();
 				}
@@ -641,6 +669,8 @@ public:
 
 		ImGui::Begin("Application");
 		{
+			ImGuiIO& io = ImGui::GetIO();
+			ImGui::Text("ImGUI FPS: %f", io.Framerate);
 			static bool vsyncOn = true;
 			ImGui::Checkbox("v-sync enabled", &vsyncOn);
 			app->SetVSync(vsyncOn);

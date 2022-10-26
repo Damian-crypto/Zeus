@@ -36,8 +36,8 @@ namespace zeus
 			throw std::runtime_error("Runtime Error: You exceeding your maximum texture slots count!");
 		}
 
-		m_Textures[name.c_str()] = tex;
-		m_Textures[name.c_str()]->Bind(m_TextureSlot);
+		m_Textures[name] = tex;
+		m_Textures[name]->Bind(m_TextureSlot);
 		m_TextureSlotIndices.push_back(m_TextureSlot);
 		m_TextureSlot++;
 	}

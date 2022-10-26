@@ -16,3 +16,4 @@
 #include "..\util\level_manager.h"
 #include "..\util\logger.h"
 #include "..\renderer\framebuffer.h"
+#include "..\ecs\Components.h"

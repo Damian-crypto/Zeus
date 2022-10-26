@@ -32,7 +32,7 @@ namespace zeus
 
 	Application::~Application()
 	{
-		std::cout << "Destruction application...\n";
+		LOG_ENGINE(Trace, "Destructing application...");
 	}
 
 	Application* Application::GetInstance()
@@ -83,7 +83,7 @@ namespace zeus
 
 	void Application::Stop()
 	{
-		std::cout << "Stop called\n";
+		LOG_ENGINE(Trace, "Stop called");
 		m_Running = false;
 	}
 
