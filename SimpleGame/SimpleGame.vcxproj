@@ -153,7 +153,12 @@
     <ClInclude Include="src\game_layer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\levels\backup_level1.data" />
     <None Include="assets\levels\level1.data" />
+    <None Include="assets\shaders\line_fragment_shader.glsl" />
+    <None Include="assets\shaders\line_vertex_shader.glsl" />
+    <None Include="assets\shaders\quad_fragment_shader.glsl" />
+    <None Include="assets\shaders\quad_vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

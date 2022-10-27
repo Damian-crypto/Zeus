@@ -13,6 +13,7 @@ GameLayer::GameLayer(const char* name)
 	m_Camera->GetProperties().MovementSpeed = 85.0f;
 
 	m_TexManager = zeus::TextureManager::GetInstance();
+	m_TexManager->PutTexture({ "wood", "assets/textures/wood.png" });
 	m_TexManager->PutSpritesheet({ "person_sheet", "assets/textures/spritesheets/tilemap_packed.png", 16, true });
 	m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/spritesheets/roguelike_spritesheet.png", 17, true });
 
@@ -20,6 +21,7 @@ GameLayer::GameLayer(const char* name)
 	m_CharacterSprite = { 0.0f, 0.0f, 2.0f };
 
 	const auto& lvl1 = std::make_shared<BeginLevel>();
+	lvl1->SetLevelSize(WIDTH, HEIGHT);
 	m_LevelManager.AddLevel(m_CurrentLevel, lvl1);
 	m_LevelManager.GetLevel(m_CurrentLevel)->GetLevelResources().TexManager = m_TexManager;
 
@@ -60,6 +62,7 @@ void GameLayer::OnEvent(zeus::Event& evt)
 	dispatcher.Dispatch(zeus::EventType::KeyReleased, keyReleased);
 }
 
+zeus::QuadData quad;
 void GameLayer::OnRender()
 {
 	zeus::Renderer::Start(m_Camera);
@@ -67,7 +70,10 @@ void GameLayer::OnRender()
 	m_LevelManager.SetActiveLevel(m_CurrentLevel);
 	m_LevelManager.Draw();
 
-	zeus::Renderer::DrawTexturedQuad(m_CharacterPos, { 32, 32, 0 }, m_TexManager->GetSubTexture("person_sheet", 24 + m_CharacterSprite.x + m_CharacterSprite.z, 16 + m_CharacterSprite.y));
+	quad.SetPosition(m_CharacterPos);
+	quad.SetSubTexture(m_TexManager->GetSubTexture("person_sheet", 24 + m_CharacterSprite.x + m_CharacterSprite.z, 16 + m_CharacterSprite.y));
+	quad.SetSize({ 32, 32, 0 });
+	zeus::Renderer::DrawTexturedQuad(quad);
 
 	auto& cam = m_Camera->GetProperties();
 	ImGui::Begin("settings");
@@ -75,7 +81,7 @@ void GameLayer::OnRender()
 		ImGui::DragFloat3("camera position", glm::value_ptr(cam.Position));
 		int* tmp = (int*)&platformPos;
 		ImGui::DragInt2("platform position", tmp);
-		ImGui::DragFloat3("character position", glm::value_ptr(m_CharacterPos));
+		ImGui::DragFloat3("character position", glm::value_ptr(m_CharacterPos), 0.1f);
 		ImGui::End();
 	}
 
@@ -111,25 +117,57 @@ void GameLayer::OnUpdate(float dt)
 		{
 			m_CharacterSprite.z = 0.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.x += velocity;
+			if (platformPos.x > -32)
+			{
+				platformPos.x -= velocity;
+			}
+			else
+			{
+				if (m_CharacterPos.x > 56)
+					m_CharacterPos.x -= velocity;
+			}
 		}
 		if (m_Keys[KEY_D])
 		{
 			m_CharacterSprite.z = 3.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.x -= velocity;
+			if (platformPos.x < 96)
+			{
+				platformPos.x += velocity;
+			}
+			else
+			{
+				if (m_CharacterPos.x < 1032)
+					m_CharacterPos.x += velocity;
+			}
 		}
 		if (m_Keys[KEY_W])
 		{
 			m_CharacterSprite.z = 2.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.y -= velocity;
+			if (platformPos.y < 32)
+			{
+				platformPos.y += velocity;
+			}
+			else
+			{
+				if (m_CharacterPos.y < 656)
+					m_CharacterPos.y += velocity;
+			}
 		}
 		if (m_Keys[KEY_S])
 		{
 			m_CharacterSprite.z = 1.0f;
 			m_CharacterSprite.y += 0.1f;
-			platformPos.y += velocity;
+			if (platformPos.y > -96)
+			{
+				platformPos.y -= velocity;
+			}
+			else
+			{
+				if (m_CharacterPos.y > 70)
+					m_CharacterPos.y -= velocity;
+			}
 		}
 		if (!(m_Keys[KEY_A] || m_Keys[KEY_D] || m_Keys[KEY_W] || m_Keys[KEY_S]))
 		{

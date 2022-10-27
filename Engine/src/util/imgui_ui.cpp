@@ -61,7 +61,7 @@ namespace zeus
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
+#if 0
         // If you strip some features of, this demo is pretty much equivalent to calling DockSpaceOverViewport()!
         // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
         // In this specific demo, we are not using DockSpaceOverViewport() because:
@@ -158,6 +158,7 @@ namespace zeus
 #endif
 
         ImGui::End();
+#endif
 	}
 
 	void ImGUI::End()

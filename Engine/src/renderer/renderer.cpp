@@ -143,7 +143,6 @@ namespace zeus
 		const auto& props = Application::GetInstance()->GetApplicationProperties();
 		
 		s_RenderData.Model	= glm::mat4(1.0f);
-		s_RenderData.View	= glm::mat4(1.0f);
 		s_RenderData.View	= camera->GetViewMatrix();
 
 		projectionProps.Left	= 0.0f;
