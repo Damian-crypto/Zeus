@@ -4,6 +4,11 @@ project(Zeus)
 
 set(CMAKE_CXX_STANDARD 17)
 
+if (__GCC__)
+    message(STATUS "Compiling with GNU GCC Compiler")
+    add_compile_options(-m64)
+endif()
+
 # add_compile_definitions(_DEBUG)
 
 add_subdirectory(Engine)

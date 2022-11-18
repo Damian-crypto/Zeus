@@ -12,6 +12,8 @@
 #include "application.h"
 #include "core.h"
 
+#include <cstring>
+
 namespace zeus
 {
 	RenderCommand* Renderer::s_QuadRenderCommand = new OpenGLRenderer;

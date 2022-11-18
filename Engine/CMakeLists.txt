@@ -1,6 +1,6 @@
 project(Engine)
 
-add_compile_definitions(WINDOWING_SYSTEM_GLFW)
+add_compile_definitions(ZUES_ENGINE WINDOWING_SYSTEM_GLFW)
 
 add_library(${PROJECT_NAME}
     corepch.cpp
