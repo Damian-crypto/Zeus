@@ -1,5 +1,7 @@
 #include "enemy_registry.h"
 
+#include <cstring>
+
 EnemyRegistry::EnemyRegistry(std::shared_ptr<zeus::TextureManager> texManager)
 {
 	m_TexManager = texManager;
@@ -27,7 +29,7 @@ std::shared_ptr<Enemy> EnemyRegistry::CreateEnemy(EnemyType type)
 			enemy->GetPhyzicalBody()->InternalData = (void*)"enemy";
 			enemy->GetPhyzicalBody()->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body) {
 				std::shared_ptr<Enemy> ptr = m_Enemies.back();
-				if ((const char*)body->InternalData == "bullet")
+				if (strcmp((const char*)body->InternalData, "bullet") == 0)
 				{
 					ptr->IsDead = true;
 				}
