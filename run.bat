@@ -1,1 +1,0 @@
-configure.bat && build.bat && cd SimpleGame && SimpleGame.exe

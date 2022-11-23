@@ -1,5 +1,6 @@
 #include "corepch.h"
 #include "level_manager.h"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -29,7 +30,7 @@ namespace zeus
 	{
 		if (m_Levels.find(key) == m_Levels.end())
 		{
-			throw std::runtime_error("Runtime Error: Trying to remove invalid level!");
+			LOG_ENGINE(Error, "Runtime Error: Trying to remove invalid level!");
 		}
 
 		m_Levels.erase(key);

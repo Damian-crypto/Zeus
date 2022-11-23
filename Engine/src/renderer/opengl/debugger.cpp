@@ -1,5 +1,7 @@
 #include "corepch.h"
 #include "debugger.h"
+#include "util/logger.h"
+
 #include <glad/gl.h>
 
 bool Validate()
@@ -47,6 +49,6 @@ void Check(const char* function, const char* file, int line)
 	if (not Validate())
 	{
 		std::string msg = "OpenGL Error: Found at " + std::string(file) + "[" + std::to_string(line) + "] -> " + std::string(function);
-		throw std::runtime_error(msg);
+		LOG_ENGINE(Error, msg.c_str());
 	}
 }

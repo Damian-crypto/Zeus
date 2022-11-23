@@ -33,6 +33,7 @@
 
 # Directories
 [Bb]uild/
+.vscode/
 
 # CMake file
 CMakeLists.txt.user

@@ -26,7 +26,7 @@ namespace zeus
 				return GL_FLOAT;
 		}
 
-		throw std::runtime_error("Runtime Error: Unknown data type found!");
+		LOG_ENGINE(Error, "Runtime Error: Unknown data type found!");
 
 		return GL_FLOAT;
 	}

@@ -4,6 +4,9 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "game_level.h"
 
+#include <exception>
+#include <iostream>
+
 extern glm::ivec2 platformPos;
 
 GameLayer::GameLayer(const char* name)
@@ -97,7 +100,7 @@ void GameLayer::OnEvent(zeus::Event& evt)
 
 	std::function<bool()> mouseMoved = [&]() -> bool {
 		auto mouseEvent = (zeus::MouseMovedEvent&)evt;
-
+		
 		m_MousePos = mouseEvent.GetMousePosition();
 
 		return true;

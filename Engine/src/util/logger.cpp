@@ -3,18 +3,24 @@
 
 #include <iostream>
 #include <utility>
-#include <Windows.h>
+#if defined(_WIN32)
+	#include <Windows.h>
+	#define OS_WINDOWS
+#endif
 
 namespace zeus
 {
+#if defined(OS_WINDOWS)
 	static constexpr short WHITE	= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 	static constexpr short RED		= FOREGROUND_RED;
 	static constexpr short GREEN	= FOREGROUND_GREEN;
 	static constexpr short BLUE		= FOREGROUND_BLUE;
 	static constexpr short YELLOW	= FOREGROUND_RED | FOREGROUND_GREEN;
+#endif
 
 	void Logger::Log(LogLevel level, const char* filename, int line, const char* function, const char* msg, bool showInfo, bool engine)
 	{
+#if defined(OS_WINDOWS)
 		unsigned short color = 0;
 		switch (level)
 		{
@@ -47,5 +53,17 @@ namespace zeus
 		}
 		WriteConsoleA(consoleHandle, msg, (DWORD)bufferLength, charsWritten, 0);
 		SetConsoleTextAttribute(consoleHandle, WHITE);
+#else
+		if (engine)
+		{
+			std::cout << "[ENGINE]::";
+		}
+		if (showInfo)
+		{
+			std::cout << filename << ":" << line << "->" << function << ": ";
+		}
+
+		std::cout << msg << '\n';
+#endif
 	}
 }

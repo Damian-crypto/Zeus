@@ -4,6 +4,7 @@ add_compile_definitions(ZUES_ENGINE WINDOWING_SYSTEM_GLFW)
 
 add_library(${PROJECT_NAME}
     corepch.cpp
+    vendor/glad/src/gl.c
     src/application.cpp
     src/layer.cpp
     src/layer_queue.cpp
@@ -29,7 +30,6 @@ add_library(${PROJECT_NAME}
     src/window/input.cpp
     src/window/window.cpp
     src/window/windows_window.cpp
-    vendor/glad/src/gl.c
     vendor/glm/include/glm/detail/glm.cpp
     vendor/imgui/imgui.cpp
     vendor/imgui/imgui_demo.cpp
@@ -38,7 +38,6 @@ add_library(${PROJECT_NAME}
     vendor/imgui/imgui_widgets.cpp
     vendor/imgui/backends/imgui_impl_glfw.cpp
     vendor/imgui/backends/imgui_impl_opengl3.cpp
-    vendor/imgui/backends/imgui_impl_win32.cpp
     vendor/imgui/misc/cpp/imgui_stdlib.cpp
     vendor/imgui/misc/fonts/binary_to_compressed_c.cpp
     vendor/stb_image/include/stb/stb_image.cpp
@@ -54,7 +53,7 @@ target_include_directories(${PROJECT_NAME}
     vendor/glm/include
     vendor/glad/include
     vendor/stb_image/include
-    vendor/imgui/
+    vendor/imgui
 )
 
 target_link_directories(${PROJECT_NAME}

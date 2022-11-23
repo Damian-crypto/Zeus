@@ -1,7 +1,8 @@
 #pragma once
 
+#include "util/logger.h"
+
 #include <vector>
-#include <stdexcept>
 
 namespace zeus
 {
@@ -95,7 +96,7 @@ namespace zeus
 			else if (type == DataType::Float4)
 				return sizeof(float) * 4;
 
-			throw std::runtime_error("Runtime Error: Unknown data type found!");
+			LOG(Error, "Runtime Error: Unknown data type found!");
 
 			return 0;
 		}

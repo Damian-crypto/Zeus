@@ -47,6 +47,13 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 
 	std::ifstream file(m_LevelPath);
 
+
+	if (!file.is_open())
+	{
+		LOG(Error, "Level file couldn't be found!");
+		return;
+	}
+
 	std::string line;
 
 	// Reading columns count
@@ -74,7 +81,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 	while (std::getline(file, line))
 	{
 		size_t lastPos = 0u;
-		for (size_t k = 0; k < line.size(); k++)
+		for (size_t k = 0; k < line.size() - 10; k++)
 		{
 			beginPos = line.find('(', lastPos);
 			size_t midPos1 = line.find(',', beginPos);
@@ -85,9 +92,11 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 			int y = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
 			int mode = stoi(line.substr(midPos1 + 1, endPos - midPos1 - 1));
 
+
 			Tile tile;
 			tile.TexCoords = { x, y };
 			tile.Type = (TileType)mode;
+
 
 			m_Map.emplace_back(tile);
 

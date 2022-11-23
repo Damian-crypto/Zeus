@@ -4,6 +4,7 @@
 #include "stb/stb_image.h"
 #include "glad/gl.h"
 #include "renderer/renderer.h"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -29,7 +30,8 @@ namespace zeus
 		uint32_t slotsCount = GetTextureSlotsCount();
 		if (slotsCount <= slot)
 		{
-			throw std::runtime_error("Runtime Error: Your gpu has only " + std::to_string(slotsCount) + " texture slots!");
+			std::string errorMsg = "Runtime Error: Your gpu has only " + std::to_string(slotsCount) + " texture slots!";
+			LOG(Error, errorMsg.c_str());
 		}
 
 		m_TextureSlot = slot;
@@ -88,7 +90,8 @@ namespace zeus
 			}
 			else
 			{
-				throw std::runtime_error("Runtime Error: Failed to load image '" + m_Filepath + "'");
+				std::string errorMsg = "Runtime Error: Failed to load image '" + m_Filepath + "'";
+				LOG_ENGINE(Error, errorMsg.c_str());
 			}
 
 			stbi_image_free(data);

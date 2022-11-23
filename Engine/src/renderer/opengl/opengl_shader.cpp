@@ -3,6 +3,7 @@
 
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -13,7 +14,7 @@ namespace zeus
 		else if (type == "pixel" || type == "fragment")
 			return GL_FRAGMENT_SHADER;
 
-		throw std::runtime_error("Runtime Error: Unknown shader type (Shader)");
+		LOG_ENGINE(Error, "Runtime Error: Unknown shader type (Shader)");
 		return 0;
 	}
 
@@ -51,7 +52,7 @@ namespace zeus
 		GLuint program = glCreateProgram();
 		if (shaderSources.size() > 2)
 		{
-			throw std::runtime_error("Runtime Error: This only supports 2 shaders at a time");
+			LOG_ENGINE(Error, "Runtime Error: This only supports 2 shaders at a time");
 		}
 
 		std::array<GLenum, 2> glShaderIDs;
@@ -79,7 +80,8 @@ namespace zeus
 				glDeleteShader(shader);
 				// TODO: logger needed
 				//LOG(O_ERROR, "%s", infoLog.data());
-				throw std::runtime_error("Runtime Error: " + ShaderTypeFromEnum(type) + " shader compilation failure!");
+				std::string errorMsg = "Runtime Error: " + ShaderTypeFromEnum(type) + " shader compilation failure!";
+				LOG_ENGINE(Error, errorMsg.c_str());
 				break; // if not success continue the program
 			}
 
@@ -107,7 +109,7 @@ namespace zeus
 				ss << "empty";
 			}
 
-			throw std::runtime_error(ss.str());
+			LOG_ENGINE(Error, ss.str().c_str());
 		}
 
 		GLint isLinked = 0;
@@ -128,7 +130,7 @@ namespace zeus
 
 			// TODO: logger needed
 			//LOG(O_ERROR, "%s", message);
-			throw std::runtime_error("Runtime Error: Program linking failure!");
+			LOG_ENGINE(Error, "Runtime Error: Program linking failure!");
 			return; // if not success stop the program
 		}
 
@@ -152,14 +154,14 @@ namespace zeus
 			size_t eol = source.find_first_of("\r\n", pos);
 			if (eol != std::string::npos)
 			{
-				throw std::runtime_error("Runtime Error: Syntax error with shaders!");
+				LOG_ENGINE(Error, "Runtime Error: Syntax error with shaders!");
 			}
 
 			size_t begin = pos + tokenLength + 1;
 			std::string type = source.substr(begin, eol - begin);
 			if (ShaderTypeFromString(type))
 			{
-				throw std::runtime_error("Runtime Error: Invalid shader type spcified!");
+				LOG_ENGINE(Error, "Runtime Error: Invalid shader type spcified!");
 			}
 
 			size_t nextLine = source.find_first_not_of("\r\n", eol);
@@ -191,7 +193,8 @@ namespace zeus
 		}
 		else
 		{
-			throw std::runtime_error("Runtime Error: Could not load the shader files " + filepath);
+			std::string errorMsg = "Runtime Error: Could not load the shader files " + filepath;
+			LOG_ENGINE(Error, errorMsg.c_str());
 		}
 
 		return result;

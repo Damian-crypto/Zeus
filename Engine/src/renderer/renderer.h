@@ -28,8 +28,8 @@ namespace zeus
 		
 		float RotatedAngle{ 0.0f };
 
-		std::shared_ptr<Texture> Texture;
-		std::shared_ptr<SubTexture> SubTexture;
+		std::shared_ptr<Texture> qTexture;
+		std::shared_ptr<SubTexture> qSubTexture;
 
 		float TilingFactor = 1;
 
@@ -45,13 +45,13 @@ namespace zeus
 		void SetTilingFactor(float factor)			{ this->TilingFactor = factor; }
 		void SetTexture(std::shared_ptr<zeus::Texture> texture)
 		{
-			this->Texture = texture;
-			this->SubTexture = nullptr;
+			this->qTexture = texture;
+			this->qSubTexture = nullptr;
 		}
 		void SetSubTexture(std::shared_ptr<zeus::SubTexture> texture)
 		{
-			this->SubTexture = texture;
-			this->Texture = nullptr;
+			this->qSubTexture = texture;
+			this->qTexture = nullptr;
 		}
 		void SetEntityID(int id)
 		{

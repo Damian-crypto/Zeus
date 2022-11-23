@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -61,7 +62,11 @@ namespace zeus
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-#if 0
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 100, 100 });
+#if 1
         // If you strip some features of, this demo is pretty much equivalent to calling DockSpaceOverViewport()!
         // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
         // In this specific demo, we are not using DockSpaceOverViewport() because:
@@ -127,7 +132,7 @@ namespace zeus
         }
         else
         {
-            throw std::runtime_error("Runtime Error: ImGui docking is not enabled!");
+            LOG_ENGINE(Error, "Runtime Error: ImGui docking is not enabled!");
         }
 
 #if 1

@@ -15,7 +15,7 @@ namespace zeus
 
 		if (!glfwInit())
 		{
-			throw std::runtime_error("Runtime Error: Windowing system not initialized!");
+			LOG_ENGINE(Error, "Runtime Error: Windowing system not initialized!");
 		}
 
 		//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -28,14 +28,14 @@ namespace zeus
 		m_NativeWindow = glfwCreateWindow((int)m_Properties.Width, (int)m_Properties.Height, m_Properties.Title.c_str(), nullptr, nullptr);
 		if (m_NativeWindow == nullptr)
 		{
-			throw std::runtime_error("Runtime Error: Window creation failed!");
+			LOG_ENGINE(Error, "Runtime Error: Window creation failed!");
 		}
 
 		glfwMakeContextCurrent(m_NativeWindow);
 
 		if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress))
 		{
-			throw std::runtime_error("Runtime Error: OpenGL function binding failed!");
+			LOG_ENGINE(Error, "Runtime Error: OpenGL function binding failed!");
 		}
 
 #if DEBUG_MODE
@@ -144,7 +144,7 @@ namespace zeus
 	{
 		if (m_NativeWindow == nullptr)
 		{
-			throw std::runtime_error("Runtime Error: Changing vsync before initializing native window!");
+			LOG_ENGINE(Error, "Runtime Error: Changing vsync before initializing native window!");
 		}
 
 		if (enabled)

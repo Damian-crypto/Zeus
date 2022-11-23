@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(SimpleGame)
 
-set(MYPROJECT_DIR "E:/DATA/Running On/Warehouse/Test/Zeus")
+set(MYPROJECT_DIR "/run/media/damianchamel/Data/DATA/Running On/Warehouse/Test/Zeus")
 
 add_executable(${PROJECT_NAME}
     src/game_layer.cpp

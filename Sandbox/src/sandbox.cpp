@@ -188,6 +188,13 @@ public:
 
 		std::ifstream file(m_LevelPath);
 
+
+		if (!file.is_open())
+		{
+			LOG(Error, "Level file couldn't be found!");
+			return;
+		}
+
 		std::string line;
 
 		// Reading columns count
@@ -215,7 +222,7 @@ public:
 		while (std::getline(file, line))
 		{
 			size_t lastPos = 0u;
-			for (size_t k = 0; k < line.size(); k++)
+			for (size_t k = 0; k < line.size() - 10; k++)
 			{
 				beginPos = line.find('(', lastPos);
 				size_t midPos1 = line.find(',', beginPos);
@@ -226,9 +233,11 @@ public:
 				int y = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
 				int mode = stoi(line.substr(midPos1 + 1, endPos - midPos1 - 1));
 
+
 				Tile tile;
 				tile.TexCoords = { x, y };
 				tile.Type = (TileType)mode;
+
 
 				m_Map.emplace_back(tile);
 
@@ -440,7 +449,7 @@ public:
 
 		ImVec2 pos = ImGui::GetMousePos();
 		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysHorizontalScrollbar;
-		auto& activeLevel = ((std::shared_ptr<SandboxLevel>&)m_LevelManager.GetActiveLevel());
+		const auto& activeLevel = (SandboxLevel*)m_LevelManager.GetActiveLevel().get();
 		static bool p_open = false;
 		ImGui::Begin("Viewport", &p_open, flags);
 		{
@@ -622,27 +631,37 @@ public:
 		ImGui::Begin("Tiles", &p_open, flags);
 		{
 			ImTextureID id = 0;
-			ImVec2 bottomRight, topLeft;
-			int windowWidth = (int)ImGui::GetWindowWidth();
-			for (uint32_t y = 0; y < 32; y++)
+			ImVec2 bottomRight, topLeft, tileSize = { 32, 32 };
+			int windowWidth = (int)ImGui::GetContentRegionAvail().x;
+			int sentinel = windowWidth / (tileSize.x + 14);
+
+			uint32_t x = 1, y = 1;
+			static int tilesCount = 57 * 31;
+			for (int i = 0; i < tilesCount; i++)
 			{
-				for (uint32_t x = 0; x < 57; x++)
+				const auto& tex = textureManager->GetSubTexture("building_sheet", x, y);
+				id = (ImTextureID)tex->GetTextureID();
+				bottomRight = *(ImVec2*)&tex->GetTexCoords()[1];
+				topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
+				int texID = x * 57 + y;
+				ImGui::PushID(texID);
+				if (ImGui::ImageButton(id, tileSize, topLeft, bottomRight))
 				{
-					if (x % windowWidth != 0)
-						ImGui::SameLine();
-					const auto& tex = textureManager->GetSubTexture("building_sheet", x, y);
-					id = (ImTextureID)tex->GetTextureID();
-					bottomRight = *(ImVec2*)&tex->GetTexCoords()[1];
-					topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
-					int texID = x * 57 + y;
-					ImGui::PushID(texID);
-					if (ImGui::ImageButton(id, ImVec2(32, 32), topLeft, bottomRight))
-					{
-						m_DragTile.IsActive = true;
-						m_DragTile.Sprite.TextureName = "building_sheet";
-						m_DragTile.Sprite.Coordinates = { x, y };
-					}
-					ImGui::PopID();
+					m_DragTile.IsActive = true;
+					m_DragTile.Sprite.TextureName = "building_sheet";
+					m_DragTile.Sprite.Coordinates = { x, y };
+				}
+				ImGui::PopID();
+
+				if (x == 0 || x % sentinel != 0)
+				{
+					ImGui::SameLine();
+					x++;
+				}
+				else
+				{
+					x = 1;
+					y++;
 				}
 			}
 
@@ -650,7 +669,7 @@ public:
 		}
 #endif
 
-		//ImGui::ShowMetricsWindow();
+		// ImGui::ShowMetricsWindow();
 
 		ImGui::Begin("Camera Properties");
 		{
@@ -853,4 +872,6 @@ int main()
 	{
 		LOG(Error, "%s", e.what());
 	}
+
+	return 0;
 }

@@ -3,6 +3,7 @@
 
 #include "texture.h"
 #include "renderer/opengl/opengl_texture.h"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -12,7 +13,7 @@ namespace zeus
 	{
 		if (s_Instance != nullptr)
 		{
-			throw std::runtime_error("Runtime Error: Trying to create already existing instance!");
+			LOG_ENGINE(Error, "Runtime Error: Trying to create already existing instance!");
 		}
 	}
 
@@ -20,7 +21,7 @@ namespace zeus
 	{
 		if (GetTextureMaxSlotsCount() <= m_TextureSlot + 1)
 		{
-			throw std::runtime_error("Runtime Error: You exceeding your maximum texture slots count!");
+			LOG_ENGINE(Error, "Runtime Error: You exceeding your maximum texture slots count!");
 		}
 
 		m_Textures[info.Name] = Texture::CreateTexture(info.Filepath);
@@ -33,7 +34,7 @@ namespace zeus
 	{
 		if (GetTextureMaxSlotsCount() <= m_TextureSlot + 1)
 		{
-			throw std::runtime_error("Runtime Error: You exceeding your maximum texture slots count!");
+			LOG_ENGINE(Error, "Runtime Error: You exceeding your maximum texture slots count!");
 		}
 
 		m_Textures[name] = tex;
@@ -46,7 +47,7 @@ namespace zeus
 	{
 		if (GetTextureMaxSlotsCount() <= m_TextureSlot + 1)
 		{
-			throw std::runtime_error("Runtime Error: You are exceeding your maximum texture slots count!");
+			LOG_ENGINE(Error, "Runtime Error: You are exceeding your maximum texture slots count!");
 		}
 
 		m_Textures[info.Name] = Texture::CreateTexture(info.Filepath);
@@ -65,7 +66,7 @@ namespace zeus
 		nameBuffer = name;
 		if (m_Textures[nameBuffer] == nullptr)
 		{
-			throw std::runtime_error("Runtime Error: Accessing invalid texture!");
+			LOG_ENGINE(Error, "Runtime Error: Accessing invalid texture!");
 		}
 
 		return m_Textures[nameBuffer];
@@ -77,7 +78,7 @@ namespace zeus
 		nameBuffer = name;
 		if (m_Textures[nameBuffer] == nullptr)
 		{
-			throw std::runtime_error("Runtime Error: Accessing invalid texture!");
+			LOG_ENGINE(Error, "Runtime Error: Accessing invalid texture!");
 		}
 
 		if (xCoord != -1 && yCoord != -1)
@@ -111,7 +112,7 @@ namespace zeus
 	{
 		if (m_Textures[name.data()] == nullptr)
 		{
-			throw std::runtime_error("Runtime Error: Trying to remove invalid texture!");
+			LOG_ENGINE(Error, "Runtime Error: Trying to remove invalid texture!");
 		}
 
 		m_TextureSlotIndices.erase(m_TextureSlotIndices.begin() + m_Textures[name.data()]->GetTextureSlot());

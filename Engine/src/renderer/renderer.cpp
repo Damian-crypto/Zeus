@@ -191,21 +191,21 @@ namespace zeus
 	void Renderer::DrawTexturedQuad(const QuadData& quad)
 	{
 		rotated = quad.RotatedAngle != 0.0f;
-		if (quad.SubTexture != nullptr)
+		if (quad.qSubTexture != nullptr)
 		{
-			quad.SubTexture->Activate();
-			texSlot = (float)quad.SubTexture->GetTextureSlot();
-			s_RenderData.TextureCoordinates = quad.SubTexture->GetTexCoords();
+			quad.qSubTexture->Activate();
+			texSlot = (float)quad.qSubTexture->GetTextureSlot();
+			s_RenderData.TextureCoordinates = quad.qSubTexture->GetTexCoords();
 		}
 
-		if (quad.Texture != nullptr)
+		if (quad.qTexture != nullptr)
 		{
-			quad.Texture->Activate();
-			texSlot = (float)quad.Texture->GetTextureSlot();
-			s_RenderData.TextureCoordinates = quad.Texture->GetTexCoords();
+			quad.qTexture->Activate();
+			texSlot = (float)quad.qTexture->GetTextureSlot();
+			s_RenderData.TextureCoordinates = quad.qTexture->GetTexCoords();
 		}
 
-		if (quad.Texture == nullptr && quad.SubTexture == nullptr)
+		if (quad.qTexture == nullptr && quad.qSubTexture == nullptr)
 		{
 			texSlot = -1;
 		}

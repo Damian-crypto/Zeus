@@ -5,6 +5,7 @@
 #include "glad/gl.h"
 #include "util/texture_manager.h"
 #include "util/texture.h"
+#include "util/logger.h"
 
 namespace zeus
 {
@@ -12,7 +13,7 @@ namespace zeus
 	{
 		if (info.Attachments.size() > GetMaxAttachments())
 		{
-			throw std::runtime_error("Runtime Error: You are exceeding your maximum color attachments count!");
+			LOG_ENGINE(Error, "Runtime Error: You are exceeding your maximum color attachments count!");
 		}
 
 		m_FramebufferInfo = info;
@@ -42,7 +43,7 @@ namespace zeus
 
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
-			throw std::runtime_error("Runtime Error: Framebuffer is not complete!");
+			LOG_ENGINE(Error, "Runtime Error: Framebuffer is not complete!");
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
