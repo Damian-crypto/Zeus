@@ -1,6 +1,6 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "editor.fontFamily": "Cascadia Code, monospace, Consolas, 'Courier New'",
+    "editor.fontFamily": "'Cascadia Code', monospace, Consolas, 'Courier New'",
     "files.associations": {
         "iostream": "cpp",
         "array": "cpp",

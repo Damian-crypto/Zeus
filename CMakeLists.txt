@@ -5,9 +5,14 @@ project(Zeus)
 # set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_STANDARD 17)
 
-if (__GCC__)
-    message(STATUS "Compiling with GNU GCC Compiler")
-    add_compile_options(-m64)
+if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+    message(STATUS "Compiling with GNU C/C++ Compiler")
+    add_compile_options(-m64)           # Compiler for x64 architecture
+    add_compile_options(-Wall)          # Show all warnings (level 4+)
+    add_compile_options(-Wpedantic)     # Generate errors if code violates strict ISO C/C++ features
+    add_compile_options(-g)             # To include debug information when compiling
+
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
 else()
 	message(STATUS "GNU C++ compiler is not there")
 endif()

@@ -21,17 +21,23 @@ function configure_leveleditor() {
     cmake -DBUILD_SANDBOX=ON -S . -B build/
 }
 
-if [[ $1 = "game" ]] then
-    printf "${GREEN}[BUILD SYSTEM] Configuring game....${NONE}\n";
-    configure_game;
-    printf "${GREEN}[BUILD SYSTEM] Copying assets...${NONE}\n";
-    cp -ru SimpleGame/assets build/SimpleGame && sh build.sh && cd build/SimpleGame && ./SimpleGame;
-elif [[ $1 = "sandbox" ]] then
-    printf "${GREEN}[BUILD SYSTEM] Configuring sandbox....${NONE}\n";
-    configure_leveleditor;
-    printf "${GREEN}[BUILD SYSTEM] Copying assets...${NONE}\n";
-    cp -ru Sandbox/assets build/Sandbox && sh build.sh && cd build/Sandbox && ./Sandbox;
-elif [[ $1 = "clean" ]] then
-    printf "${RED}Clearing up dynamic builds${NONE}\n";
-    cd build && rm -rf Sandbox && rm -rf SimpleGame;
+if [[ $2 = "" ]] then
+    if [[ $1 = "game" ]] then
+        printf "${GREEN}[BUILD SYSTEM] Configuring game....${NONE}\n";
+        configure_game;
+        printf "${GREEN}[BUILD SYSTEM] Copying assets...${NONE}\n";
+        cp -ru SimpleGame/assets build/SimpleGame && sh build.sh && cd build/SimpleGame && ./SimpleGame;
+    elif [[ $1 = "sandbox" ]] then
+        printf "${GREEN}[BUILD SYSTEM] Configuring sandbox....${NONE}\n";
+        configure_leveleditor;
+        printf "${GREEN}[BUILD SYSTEM] Copying assets...${NONE}\n";
+        cp -ru Sandbox/assets build/Sandbox && sh build.sh && cd build/Sandbox && ./Sandbox;
+    elif [[ $1 = "clean" ]] then
+        printf "${RED}Clearing up dynamic builds${NONE}\n";
+        cd build && rm -rf Sandbox && rm -rf SimpleGame;
+    fi
+else
+    if [[ $1 = "sandbox" ]] && [[ $2 = "debug" ]] then
+        cd build/Sandbox && gdb Sandbox;
+    fi
 fi

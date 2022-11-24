@@ -71,7 +71,7 @@ private:
 
 	uint32_t m_LevelCols{ 0u };
 	uint32_t m_LevelRows{ 0u };
-	uint32_t m_CellSize	{ 0u };
+	uint32_t m_CellSize	{ 32u };
 
 	std::vector<Tile> m_Map;
 
@@ -124,24 +124,56 @@ public:
 		zeus::Renderer::DrawTexturedQuad(quad);
 	}
 
-	void AddTile(const Tile& tile)
+	// @brief This function will increase the map size always (cannot reduce map size)
+	// @param size - side length of the map and size always +ve (entire map is a square)
+	void ResizeMap(uint32_t size)
 	{
-		if (tile.Position.x > m_LevelCols * m_CellSize)
+		uint32_t remainMapSize = size * size - (uint32_t)m_Map.size();
+		m_LevelCols += size;
+		m_LevelRows += size;
+		Tile defaultTile;
+		defaultTile.TexCoords = { -1, -1 };
+		for (uint32_t i = 0; i < remainMapSize; i++)
 		{
-			m_LevelCols++;
-			QUICK_LOG(Trace, "columns increased");
+			m_Map.emplace_back(defaultTile);
 		}
-		if (tile.Position.y > m_LevelRows * m_CellSize)
-		{
-			m_LevelRows++;
-			QUICK_LOG(Trace, "columns increased");
-		}
-		m_Map.emplace_back(tile);
 	}
+
+	// void AddTile(const Tile& tile)
+	// {
+	// 	if (tile.Position.x > m_LevelCols * m_CellSize)
+	// 	{
+	// 		m_LevelCols++;
+	// 		QUICK_LOG(Trace, "columns increased");
+	// 	}
+	// 	if (tile.Position.y > m_LevelRows * m_CellSize)
+	// 	{
+	// 		m_LevelRows++;
+	// 		QUICK_LOG(Trace, "columns increased");
+	// 	}
+	// 	m_Map.emplace_back(tile);
+	// }
 
 	std::vector<Tile>& GetLevelMap()
 	{
 		return m_Map;
+	}
+
+	void ClearLevelMap()
+	{
+		m_Map.clear();
+		m_LevelCols = 0;
+		m_LevelRows = 0;
+	}
+
+	void SetCellsize(uint32_t size)
+	{
+		m_CellSize = size;
+	}
+
+	uint32_t GetCellsize()
+	{
+		return m_CellSize;
 	}
 
 	void SaveLevel()
@@ -188,62 +220,75 @@ public:
 
 		std::ifstream file(m_LevelPath);
 
-
 		if (!file.is_open())
 		{
 			LOG(Error, "Level file couldn't be found!");
 			return;
 		}
 
-		std::string line;
-
-		// Reading columns count
-		getline(file, line);
-		size_t beginPos = line.find(':');
-		size_t endPos = line.size();
-		m_LevelCols = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-		// Reading rows count
-		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
-		m_LevelRows = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-		// Reading cell size
-		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
-		m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-		// Escape blank line
-		std::getline(file, line);
-
-		// Reading map
-		while (std::getline(file, line))
+		long int filesize = file.gcount();
+		if (filesize <= 0)
 		{
-			size_t lastPos = 0u;
-			for (size_t k = 0; k < line.size() - 10; k++)
+			return;
+		}
+
+		try
+		{
+			std::string line;
+
+			// Reading columns count
+			getline(file, line);
+			size_t beginPos = line.find(':');
+			size_t endPos = line.size();
+			m_LevelCols = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+
+			// Reading rows count
+			getline(file, line);
+			beginPos = line.find(':');
+			endPos = line.size();
+			m_LevelRows = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+
+			// Reading cell size
+			getline(file, line);
+			beginPos = line.find(':');
+			endPos = line.size();
+			m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+
+			// Escape blank line
+			std::getline(file, line);
+
+			// Reading map
+			while (std::getline(file, line))
 			{
-				beginPos = line.find('(', lastPos);
-				size_t midPos1 = line.find(',', beginPos);
-				size_t midPos2 = line.find(',', midPos1 + 1);
-				endPos = line.find(')', beginPos + 1);
+				size_t lastPos = 0u;
+				for (size_t k = 0; k < line.size() - 15; k++)
+				{
+					beginPos = line.find('(', lastPos);
+					size_t midPos1 = line.find(',', beginPos);
+					size_t midPos2 = line.find(',', midPos1 + 1);
+					endPos = line.find(')', beginPos + 1);
 
-				int x = stoi(line.substr(beginPos + 1, midPos1 - beginPos - 1));
-				int y = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
-				int mode = stoi(line.substr(midPos1 + 1, endPos - midPos1 - 1));
+					int x = stoi(line.substr(beginPos + 1, midPos1 - beginPos - 1));
+					int y = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
+					int mode = stoi(line.substr(midPos1 + 1, endPos - midPos1 - 1));
 
+					Tile tile;
+					tile.TexCoords = { x, y };
+					tile.Type = (TileType)mode;
 
-				Tile tile;
-				tile.TexCoords = { x, y };
-				tile.Type = (TileType)mode;
+					std::cout << "(" << tile.TexCoords.x << ", " << tile.TexCoords.y << ", " << (int)tile.Type << ") ";
 
+					m_Map.emplace_back(tile);
 
-				m_Map.emplace_back(tile);
-
-				lastPos = endPos + 1;
-				k = lastPos;
+					lastPos = endPos + 1;
+					k = lastPos;
+				}
+				std::cout << '\n';
 			}
+		}
+		catch (std::exception e)
+		{
+			LOG(Error, "Runtime Error: when loading the level -> %s", e.what());
 		}
 	}
 };
@@ -475,15 +520,15 @@ public:
 				if (mouseButtons[MOUSE_LEFT] && m_DragTile.IsActive)
 				{
 					auto& levelMap = activeLevel->GetLevelMap();
-					if (id >= levelMap.size())
-					{
-						SandboxLevel::Tile _tile;
-						_tile.Position = { m_CursorPos.x, m_CursorPos.y, 0 };
-						_tile.TexCoords = m_DragTile.Sprite.Coordinates;
-						_tile.Type = SandboxLevel::TileType::None;
-						activeLevel->AddTile(_tile);
-					}
-					else
+					// if (id >= levelMap.size())
+					// {
+					// 	SandboxLevel::Tile _tile;
+					// 	_tile.Position = { m_CursorPos.x, m_CursorPos.y, 0 };
+					// 	_tile.TexCoords = m_DragTile.Sprite.Coordinates;
+					// 	_tile.Type = SandboxLevel::TileType::None;
+					// 	activeLevel->AddTile(_tile);
+					// }
+					if (id < levelMap.size())
 					{
 						levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
 					}
@@ -512,12 +557,15 @@ public:
 
 			if (savedID != -1)
 			{
-				auto& tile = activeLevel->GetLevelMap()[savedID];
+				auto& tile = activeLevel->GetLevelMap().at(savedID);
 				const auto& tex = textureManager->GetSubTexture("building_sheet", tile.TexCoords.x, tile.TexCoords.y);
-				ImVec2 bottomRight = *(ImVec2*)&tex->GetTexCoords()[1];
-				ImVec2 topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
-
-				ImGui::Image((ImTextureID)tex->GetTextureID(), ImVec2(32, 32), topLeft, bottomRight);
+				// Empty tiles may have null textures
+				if (tex != nullptr)
+				{
+					ImVec2 bottomRight = *(ImVec2*)&tex->GetTexCoords().at(1);
+					ImVec2 topLeft = *(ImVec2*)&tex->GetTexCoords().at(3);
+					ImGui::Image((ImTextureID)tex->GetTextureID(), ImVec2(32, 32), topLeft, bottomRight);
+				}
 
 				static const char* items[] = { "None", "Water", "Rock", "Tree" };
 				int item_current_idx = (int)tile.Type;
@@ -553,9 +601,10 @@ public:
 				activeLevel->SaveLevel();
 			}
 
-			ImGui::Checkbox("Show grid", &showGrid);
-			ImGui::DragInt("Grid square size", &m_GridCellSize, 1, 0);
-			ImGui::DragInt("Line width", &m_LineWidth, 1, 0, 31);
+			static int cellsize = activeLevel->GetCellsize();
+			ImGui::InputInt("Tile size", &cellsize);
+			activeLevel->SetCellsize(cellsize);
+
 			if (ImGui::Button("Add New Entity"))
 				ImGui::OpenPopup("Add New Entity");
 
@@ -586,6 +635,46 @@ public:
 
 				if (ImGui::Button("Close"))
 					ImGui::CloseCurrentPopup();
+				ImGui::EndPopup();
+			}
+
+			ImGui::Checkbox("Show grid", &showGrid);
+			ImGui::DragInt("Grid square size", &m_GridCellSize, 1, 0);
+			ImGui::DragInt("Line width", &m_LineWidth, 1, 0, 31);
+			ImGui::Text("Level map size: %d", activeLevel->GetLevelMap().size());
+			static int additionSize = 0;
+			ImGui::InputInt("Map size NxN", &additionSize);
+			if (ImGui::Button("Resize##Resize-button"))
+			{
+				activeLevel->ResizeMap(additionSize);
+			}
+
+			if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			{
+				ImGui::SetTooltip("This amount will add to the existing level map");
+			}
+
+			if (ImGui::Button("Clear level map"))
+				ImGui::OpenPopup("Clear Level Map##level-clear-popup");
+
+			if (ImGui::BeginPopupModal("Clear Level Map##level-clear-popup"))
+			{
+				ImGui::Text("Are you sure you want to clear the level map?");
+				ImGui::Text("This will erase entire level map with tiles (you will have to draw this map again tile by tile)");
+				
+				if (ImGui::Button("Yes"))
+				{
+					activeLevel->ClearLevelMap();
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("No"))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+
 				ImGui::EndPopup();
 			}
 

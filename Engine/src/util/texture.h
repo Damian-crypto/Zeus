@@ -72,7 +72,7 @@ namespace zeus
 		void Unbind() const { m_ParentTexture->Unbind(); }
 		void Activate() { m_ParentTexture->Activate(); }
 
-		const std::vector<glm::vec2>& GetTexCoords() const { return m_TexCoords; }
+		std::vector<glm::vec2> GetTexCoords() const { return m_TexCoords; }
 		uint32_t GetTextureID() const { return m_ParentTexture->GetTextureID(); }
 		uint32_t GetTextureSlot() const { return  m_ParentTexture->GetTextureSlot(); }
 		uint32_t GetCellSize() const { return m_Cellsize; }
