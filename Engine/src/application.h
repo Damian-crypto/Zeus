@@ -45,6 +45,7 @@ namespace zeus
 		void PushLayer(Layer* layer);
 		void SetVSync(bool enabled = true);
 		std::shared_ptr<Window> GetWindow();
+		std::shared_ptr<ImGUI> GetUI();
 		int GetFramerate() const;
 
 		ApplicationProperties& GetApplicationProperties();

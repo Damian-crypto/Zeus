@@ -46,6 +46,14 @@ namespace zeus
 		m_Window->CreateWindow({ m_Properties.Title, m_Properties.Width, m_Properties.Height });
 		m_Window->VSyncEnable(true);
 		m_ImGui->Init();
+
+		// MenuItem fileMenu;
+		// fileMenu.ItemName = "menu$$File";
+		// MenuItem openItem;
+		// openItem.ItemName = "menu-item$$Open";
+		// openItem.Action = []() -> bool { LOG_ENGINE(Trace, "Open File"); };
+		// m_ImGui->AddMenuItem(fileMenu);
+		// m_ImGui->AddMenuItem(openItem);
 	}
 
 	void Application::Run()
@@ -99,6 +107,11 @@ namespace zeus
 			LOG_ENGINE(Error, "Runtime Error: Trying to change window settings before initialization!");
 		}
 		m_Window->VSyncEnable(enabled);
+	}
+
+	std::shared_ptr<ImGUI> Application::GetUI()
+	{
+		return m_ImGui;
 	}
 
 	std::shared_ptr<Window> Application::GetWindow()

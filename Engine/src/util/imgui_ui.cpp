@@ -87,7 +87,7 @@ namespace zeus
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
         // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;// | ImGuiWindowFlags_MenuBar;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
         if (opt_fullscreen)
         {
             const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -116,7 +116,7 @@ namespace zeus
         // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
         if (!opt_padding)
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+        ImGui::Begin("Zues Workspace", &p_open, window_flags);
         if (!opt_padding)
             ImGui::PopStyleVar();
 
@@ -127,7 +127,7 @@ namespace zeus
         ImGuiIO& io = ImGui::GetIO();
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+            ImGuiID dockspace_id = ImGui::GetID("MyWorkspace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
         }
         else
@@ -135,9 +135,42 @@ namespace zeus
             LOG_ENGINE(Error, "Runtime Error: ImGui docking is not enabled!");
         }
 
-#if 1
+    #if 0
         if (ImGui::BeginMenuBar())
         {
+            const static std::regex menuRegex("menu\\$\\$(.*)");
+            const static std::regex menuItemRegex("menu-item\\$\\$(.*)");
+
+            for (size_t i = 0; i < m_MenuItems.size(); i++)
+            {
+                MenuItem item = m_MenuItems[i];
+                size_t nameStart = item.ItemName.find("$");
+                std::string name = item.ItemName.substr(nameStart + 2);
+                if (std::regex_match(item.ItemName, menuRegex))
+                {
+                    if (ImGui::BeginMenu(name.c_str()))
+                    {
+                        for (size_t j = i; j < m_MenuItems.size(); j++)
+                        {
+                            item = m_MenuItems[j];
+                            nameStart = item.ItemName.find("$");
+                            name = item.ItemName.substr(nameStart + 2);
+                            LOG_ENGINE(Trace, name.c_str());
+                            if (std::regex_match(item.ItemName, menuItemRegex))
+                            {
+                                if (ImGui::MenuItem(name.c_str()))
+                                {
+                                    item.Action();
+                                }
+                            }
+                        }
+
+                        ImGui::EndMenu();
+                    }
+                }
+            }
+
+        #if 0
             if (ImGui::BeginMenu("Options"))
             {
                 // Disabling fullscreen would allow the window to be moved to the front of other windows,
@@ -154,13 +187,16 @@ namespace zeus
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
+                {
                     p_open = false;
+                }
                 ImGui::EndMenu();
             }
-
+        #endif
             ImGui::EndMenuBar();
         }
-#endif
+
+    #endif
 
         ImGui::End();
 #endif
@@ -194,6 +230,11 @@ namespace zeus
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+    }
+
+    void ImGUI::AddMenuItem(const MenuItem& item)
+    {
+        m_MenuItems.push_back(item);
     }
 
     bool ImGUI::IsBlocking()

@@ -34,10 +34,14 @@ if [[ $2 = "" ]] then
         cp -ru Sandbox/assets build/Sandbox && sh build.sh && cd build/Sandbox && ./Sandbox;
     elif [[ $1 = "clean" ]] then
         printf "${RED}Clearing up dynamic builds${NONE}\n";
-        cd build && rm -rf Sandbox && rm -rf SimpleGame;
+        sh clean.sh;
     fi
 else
-    if [[ $1 = "sandbox" ]] && [[ $2 = "debug" ]] then
-        cd build/Sandbox && gdb Sandbox;
+    if [[ $1 = "sandbox" ]] then
+        if [[ $2 = "debug" ]] then
+            cd build/Sandbox && gdb Sandbox;
+        elif [[ $2 = "debug-tui" ]] then
+            cd build/Sandbox && gdb -tui Sandbox;
+        fi
     fi
 fi

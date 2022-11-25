@@ -61,6 +61,7 @@ public:
 
 	struct Tile
 	{
+		int idx = -1;
 		glm::vec3 Position;
 		glm::ivec2 TexCoords;
 		TileType Type;
@@ -111,9 +112,16 @@ public:
 
 					zeus::Renderer::DrawTexturedQuad(quad);
 				}
+
+				// const auto& tile = m_Map[idx];
+				// std::cout << "(" << tile.TexCoords.x << ", " << tile.TexCoords.y << ", " << (int)tile.Type << ") ";
+
 				//zeus::Renderer::DrawQuad(quad);
 			}
+			// std::cout << '\n';
 		}
+		
+		// while (true);
 
 		quad.SetPosition(spritePos);
 		quad.SetSize(scaler);
@@ -161,9 +169,9 @@ public:
 
 	void ClearLevelMap()
 	{
-		m_Map.clear();
 		m_LevelCols = 0;
 		m_LevelRows = 0;
+		m_Map.clear();
 	}
 
 	void SetCellsize(uint32_t size)
@@ -206,7 +214,10 @@ public:
 				idx = x + y * m_LevelCols;
 				if (idx < m_Map.size())
 				{
-					file << "(" << m_Map[idx].TexCoords.x << ", " << m_Map[idx].TexCoords.y << ", " << (int)m_Map[idx].Type << ") ";
+					file << "(" << m_Map[idx].TexCoords.x << ", ";
+					file << m_Map[idx].TexCoords.y << ", ";
+					file << (int)m_Map[idx].Type << ", ";
+					file << m_Map[idx].idx << ") ";
 				}
 			}
 			file << '\n';
@@ -226,9 +237,13 @@ public:
 			return;
 		}
 
-		long int filesize = file.gcount();
+		long int begin = file.tellg();
+		file.seekg(0, std::ios::end);
+		long int filesize = file.tellg();
+		file.seekg(std::ios::beg);
 		if (filesize <= 0)
 		{
+			LOG(Warn, "LevelMap is empty -> %s", m_LevelPath.c_str());
 			return;
 		}
 
@@ -261,29 +276,40 @@ public:
 			while (std::getline(file, line))
 			{
 				size_t lastPos = 0u;
-				for (size_t k = 0; k < line.size() - 15; k++)
+				for (size_t k = 0; k < line.size(); k++)
 				{
+					if (lastPos + 14 > line.size() || k + 14 > line.size())
+					{
+						break;
+					}
+
 					beginPos = line.find('(', lastPos);
 					size_t midPos1 = line.find(',', beginPos);
 					size_t midPos2 = line.find(',', midPos1 + 1);
+					size_t midPos3 = line.find(',', midPos2 + 1);
+					// size_t midPos4 = line.find(',', midPos3 + 1);
 					endPos = line.find(')', beginPos + 1);
 
-					int x = stoi(line.substr(beginPos + 1, midPos1 - beginPos - 1));
-					int y = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
-					int mode = stoi(line.substr(midPos1 + 1, endPos - midPos1 - 1));
+					int texX = stoi(line.substr(beginPos + 1, midPos1 - beginPos - 1));
+					int texY = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
+					int mode = stoi(line.substr(midPos2 + 1, midPos3 - midPos2 - 1));
+					int idx = stoi(line.substr(midPos3 + 1, endPos - midPos3 - 1));
+					// int posY = stoi(line.substr(midPos4 + 1, endPos - midPos3 - 1));
+
+					// std::cout << "(" << texX << ", " << texY << ", " << mode << ") ";
 
 					Tile tile;
-					tile.TexCoords = { x, y };
+					tile.TexCoords = { texX, texY };
 					tile.Type = (TileType)mode;
-
-					std::cout << "(" << tile.TexCoords.x << ", " << tile.TexCoords.y << ", " << (int)tile.Type << ") ";
+					// tile.Position = { posX, posY, 0 };
+					tile.idx = idx;
 
 					m_Map.emplace_back(tile);
 
 					lastPos = endPos + 1;
 					k = lastPos;
 				}
-				std::cout << '\n';
+				// std::cout << '\n';
 			}
 		}
 		catch (std::exception e)
@@ -320,6 +346,12 @@ public:
 	SandboxLayer(const char* name)
 		: m_Name(name)
 	{
+		// Initialize Menubar
+		// const auto& app = zeus::Application::GetInstance();
+		// const auto& ui = app->GetUI();
+		// ui->AddMenuItem({ "menu##File" });
+		// ui->AddMenuItem({ "menu-item##Open", []() -> bool { LOG(Trace, "Open File"); } });
+
 		m_Camera = std::make_shared<zeus::Camera>();
 		m_Camera->GetProperties().Position = defaultOrthoCamera.Position;
 		m_Camera->GetProperties().MovementSpeed = defaultOrthoCamera.MovementSpeed;
@@ -504,7 +536,7 @@ public:
 			m_CursorPos.x = pos.x - (sX + windowOffset.x);
 			m_CursorPos.y = pos.y - (sY + windowOffset.y);
 
-			if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())
+			if (ImGui::IsWindowHovered())
 			{
 				ImGuiIO& io = ImGui::GetIO();
 				io.WantCaptureKeyboard = false;
@@ -530,7 +562,7 @@ public:
 					// }
 					if (id < levelMap.size())
 					{
-						levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
+						// levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
 					}
 					m_DragTile.IsActive = false;
 				}
@@ -721,8 +753,13 @@ public:
 		{
 			ImTextureID id = 0;
 			ImVec2 bottomRight, topLeft, tileSize = { 32, 32 };
-			int windowWidth = (int)ImGui::GetContentRegionAvail().x;
-			int sentinel = windowWidth / (tileSize.x + 14);
+			ImVec2 contentRegion = ImGui::GetContentRegionAvail();
+			if (contentRegion.x < 100)
+			{
+				ImGui::SetWindowSize(ImVec2 { 200, 200 });
+				contentRegion = ImGui::GetWindowSize();
+			}
+			int sentinel = contentRegion.x / int(tileSize.x + 14);
 
 			uint32_t x = 1, y = 1;
 			static int tilesCount = 57 * 31;
@@ -742,7 +779,7 @@ public:
 				}
 				ImGui::PopID();
 
-				if (x == 0 || x % sentinel != 0)
+				if (x == 0 || (sentinel > 1 && x % sentinel != 0))
 				{
 					ImGui::SameLine();
 					x++;
