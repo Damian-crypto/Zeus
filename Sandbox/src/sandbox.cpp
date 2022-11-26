@@ -53,10 +53,10 @@ class SandboxLevel : public zeus::Level
 public:
 	enum class TileType
 	{
-		None = 0,
-		Water,
+		Water = 0,
 		Rock,
-		Tree
+		Tree,
+		None
 	};
 
 	struct Tile
@@ -73,6 +73,7 @@ private:
 	uint32_t m_LevelCols{ 0u };
 	uint32_t m_LevelRows{ 0u };
 	uint32_t m_CellSize	{ 32u };
+	float m_CellGap = 2.0f;
 
 	std::vector<Tile> m_Map;
 
@@ -85,7 +86,7 @@ public:
 	zeus::QuadData quad;
 	void Draw() override
 	{
-		static float gap			= m_CellSize * 2;
+		float gap = m_CellSize * m_CellGap;
 		static float leftBoundary	= 0.0f;
 		static float rightBoundary	= WIDTH - m_CellSize;
 		static float topBoundary	= HEIGHT - m_CellSize;
@@ -179,6 +180,16 @@ public:
 		m_CellSize = size;
 	}
 
+	void SetCellgap(float gap)
+	{
+		m_CellGap = gap;
+	}
+
+	float GetCellgap()
+	{
+		return m_CellGap;
+	}
+
 	uint32_t GetCellsize()
 	{
 		return m_CellSize;
@@ -200,6 +211,10 @@ public:
 
 		// Reading cell size
 		line = "cellsize: " + std::to_string(m_CellSize);
+		file << line << '\n';
+
+		// Reading cell gap
+		line = "cellgap: " + std::to_string(m_CellGap);
 		file << line << '\n';
 
 		// Escape blank line
@@ -268,6 +283,12 @@ public:
 			beginPos = line.find(':');
 			endPos = line.size();
 			m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+
+			// Reading cell gap
+			getline(file, line);
+			beginPos = line.find(':');
+			endPos = line.size();
+			m_CellGap = std::stof(line.substr(beginPos + 1, beginPos - endPos - 1));
 
 			// Escape blank line
 			std::getline(file, line);
@@ -544,25 +565,35 @@ public:
 
 				int id = m_Framebuffer->ReadID(1, m_CursorPos.x, HEIGHT - m_CursorPos.y);
 
-				if (mouseButtons[MOUSE_RIGHT] && m_DragTile.IsActive)
+				if (mouseButtons[MOUSE_RIGHT])
 				{
-					activeLevel->GetLevelMap()[id].TexCoords = {-1, -1};
+					if (ImGui::IsWindowFocused())
+					{
+						activeLevel->GetLevelMap()[id].TexCoords = {-1, -1};
+					}
+					else if (m_DragTile.IsActive)
+					{
+						m_DragTile.IsActive = false;
+					}
 				}
 
 				if (mouseButtons[MOUSE_LEFT] && m_DragTile.IsActive)
 				{
 					auto& levelMap = activeLevel->GetLevelMap();
-					// if (id >= levelMap.size())
-					// {
-					// 	SandboxLevel::Tile _tile;
-					// 	_tile.Position = { m_CursorPos.x, m_CursorPos.y, 0 };
-					// 	_tile.TexCoords = m_DragTile.Sprite.Coordinates;
-					// 	_tile.Type = SandboxLevel::TileType::None;
-					// 	activeLevel->AddTile(_tile);
-					// }
+#if 0
+					if (id >= levelMap.size())
+					{
+						SandboxLevel::Tile _tile;
+						_tile.Position = { m_CursorPos.x, m_CursorPos.y, 0 };
+						_tile.TexCoords = m_DragTile.Sprite.Coordinates;
+						_tile.Type = SandboxLevel::TileType::None;
+						activeLevel->AddTile(_tile);
+					}
+#endif
+
 					if (id < levelMap.size())
 					{
-						// levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
+						levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
 					}
 					m_DragTile.IsActive = false;
 				}
@@ -580,7 +611,6 @@ public:
 			static int savedID = -1;
 			if (id >= 0 && id < activeLevel->GetLevelMap().size())
 			{
-				
 				if (mouseButtons[MOUSE_LEFT])
 				{
 					savedID = id;
@@ -600,31 +630,35 @@ public:
 				}
 
 				static const char* items[] = { "None", "Water", "Rock", "Tree" };
-				int item_current_idx = (int)tile.Type;
-				const char* combo_preview_value = items[item_current_idx];
-				if (ImGui::BeginCombo("Assigned Type", combo_preview_value, 0))
+				if (tile.Type < SandboxLevel::TileType::None)
 				{
-					for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+					int item_current_idx = (int)tile.Type;
+					const char* combo_preview_value = items[item_current_idx];
+					if (ImGui::BeginCombo("Assigned Type", combo_preview_value, 0))
 					{
-						const bool is_selected = (item_current_idx == n);
-						if (ImGui::Selectable(items[n], is_selected))
-							item_current_idx = n;
-
-						if (is_selected)
+						for (int n = 0; n < IM_ARRAYSIZE(items); n++)
 						{
-							ImGui::SetItemDefaultFocus();
-						}
-					}
-					ImGui::EndCombo();
-				}
+							const bool is_selected = (item_current_idx == n);
+							if (ImGui::Selectable(items[n], is_selected))
+								item_current_idx = n;
 
-				if (tile.Type != (SandboxLevel::TileType)item_current_idx)
-				{
-					tile.Type = (SandboxLevel::TileType)item_current_idx;
+							if (is_selected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
+
+					if (tile.Type != (SandboxLevel::TileType)item_current_idx)
+					{
+						tile.Type = (SandboxLevel::TileType)item_current_idx;
+					}
 				}
 
 				ImGui::Text("Selected entity id: %d", savedID);
 			}
+				// QUICK_LOG(Trace, "arrived");
 
 			ImGui::Text("%f %f: %d", m_CursorPos.x, m_CursorPos.y, id);
 
@@ -636,6 +670,10 @@ public:
 			static int cellsize = activeLevel->GetCellsize();
 			ImGui::InputInt("Tile size", &cellsize);
 			activeLevel->SetCellsize(cellsize);
+
+			float cellgap = activeLevel->GetCellgap();
+			ImGui::InputFloat("Tile gap", &cellgap, 0.1f);
+			activeLevel->SetCellgap(cellgap);
 
 			if (ImGui::Button("Add New Entity"))
 				ImGui::OpenPopup("Add New Entity");
