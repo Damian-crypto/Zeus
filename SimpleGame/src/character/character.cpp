@@ -1,5 +1,8 @@
 #include "character.h"
 
+#include <cstring>
+#include <iostream>
+
 Character::Character()
 {
 	m_PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
@@ -10,7 +13,11 @@ Character::Character()
 	m_PhysicalBody->SetHeight(100.0f);
 	m_PhysicalBody->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body) {
 		const auto& pos = body->Position;
-		QUICK_LOG(Trace, "%s hit by %s at %f %f", (const char*)m_PhysicalBody->InternalData, (const char*)body->InternalData, pos.x, pos.y);
+		if (strcmp((const char*)body->InternalData, "rock") == 0)
+		{
+			SetPosition(m_LastPosition);
+		}
+		// QUICK_LOG(Trace, "%s hit by %s at %f %f", (const char*)m_PhysicalBody->InternalData, (const char*)body->InternalData, pos.x, pos.y);
 	};
 }
 
@@ -18,6 +25,8 @@ float step = 0.0f;
 void Character::Move(float x, float y, float z, bool lock)
 {
 	m_Moving = true;
+
+	m_LastPosition = m_Position;
 
 	// Direction of the player looking at
 	//		0 - North
@@ -74,7 +83,7 @@ void Character::SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics)
 	}
 
 	m_Phyzics = phyzics;
-	m_Phyzics->AddDynamicBody(m_PhysicalBody);
+	m_Phyzics->AddBody(m_PhysicalBody);
 }
 
 void Character::OnUpdate(float dt)

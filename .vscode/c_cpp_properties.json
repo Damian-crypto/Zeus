@@ -3,9 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
-                // "${workspaceFolder}/Engine/src/**",
-                // "${workspaceFolder}/Engine/vendor/glm/include"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/Engine/src/**",
+                "${workspaceFolder}/Engine/vendor/glm/include"
             ],
             "defines": [
                 "_DEBUG",

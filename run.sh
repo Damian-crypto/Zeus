@@ -43,5 +43,11 @@ else
         elif [[ $2 = "debug-tui" ]] then
             cd build/Sandbox && gdb -tui Sandbox;
         fi
+    elif [[ $1 = "game" ]] then
+        if [[ $2 = "debug" ]] then
+            cd build/SimpleGame && gdb SimpleGame;
+        elif [[ $2 = "debug-tui" ]] then
+            cd build/SimpleGame && gdb-tui SimpleGame;
+        fi
     fi
 fi

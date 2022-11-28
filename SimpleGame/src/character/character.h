@@ -22,6 +22,7 @@ public:
 
 protected:
 	glm::vec3 m_Position{ 0.0f };
+	glm::vec3 m_LastPosition { 0.0f };
 	glm::vec3 m_SpriteCoords{ 0.0f };
 
 	std::shared_ptr<Weapon> m_Weapon = nullptr;
@@ -46,7 +47,7 @@ public:
 	void OnRender();
 
 	void SetWeapon(WeaponType type);
-	void SetPosition(const glm::vec3 pos) { m_Position = pos; }
+	void SetPosition(const glm::vec3 pos) { m_Position = pos; m_PhysicalBody->Position = pos; }
 	void SetSprite(const Sprite& sprite) { m_Sprite = sprite; m_SpriteCoords = sprite.Coords; }
 	void SetTextureManager(std::shared_ptr<zeus::TextureManager> texManager) { m_TexManager = texManager; }
 	void SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics);

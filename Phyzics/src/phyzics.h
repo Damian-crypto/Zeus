@@ -26,15 +26,13 @@ namespace zeus
 {
 	struct PhyzicsStat
 	{
-		size_t StaticBodies{ 0 };
-		size_t DynamicBodies{ 0 };
+		size_t Bodies{ 0 };
 	};
 
 	class Phyzics
 	{
 	private:
-		std::vector<std::shared_ptr<PhyzicalBody>> m_StaticBodies;
-		std::vector<std::shared_ptr<PhyzicalBody>> m_DynamicBodies;
+		std::vector<std::shared_ptr<PhyzicalBody>> m_Bodies;
 
 		float m_G = 10.0f;
 
@@ -43,8 +41,7 @@ namespace zeus
 	public:
 		Phyzics() {}
 
-		void AddStaticBody(std::shared_ptr<PhyzicalBody> body);
-		void AddDynamicBody(std::shared_ptr<PhyzicalBody> body);
+		void AddBody(std::shared_ptr<PhyzicalBody> body);
 		void Step(float dt);
 
 		static const PhyzicsStat& GetStatistics();

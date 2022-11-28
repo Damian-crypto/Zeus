@@ -6,66 +6,47 @@ namespace zeus
 {
 	PhyzicsStat Phyzics::s_Stat = {};
 
-	void Phyzics::AddStaticBody(std::shared_ptr<PhyzicalBody> body)
+	void Phyzics::AddBody(std::shared_ptr<PhyzicalBody> body)
 	{
-		m_StaticBodies.push_back(body);
-	}
-
-	void Phyzics::AddDynamicBody(std::shared_ptr<PhyzicalBody> body)
-	{
-		m_DynamicBodies.push_back(body);
+		m_Bodies.push_back(body);
 	}
 
 	// Note:
 	// Below collision detection is very badly designed.
 	// TODO: This will be well designed in future
-	int i = 0;
+	// int i = 0;
 	void Phyzics::Step(float dt)
 	{
-		int staticBodiesCount = (int)m_StaticBodies.size();
-		int dynamicBodiesCount = (int)m_DynamicBodies.size();
-
-		if (staticBodiesCount > 0)
+		if (!m_Bodies.empty())
 		{
-			int item = i % (int)m_StaticBodies.size();
-			const auto& body = m_StaticBodies[item];
-
-			body->Step(dt);
-
-			for (const auto& body2 : m_StaticBodies)
+			for (size_t i = 0; i < m_Bodies.size(); i++)
 			{
-				if (body != body2 && body->IsCollide(body2))
+				const auto& body = m_Bodies[i];
+
+				body->Step(dt);
+
+				if (body == nullptr || body->IsDead)
 				{
-					body->OnCollision(body2);
+					m_Bodies.erase(m_Bodies.begin() + i);
+				}
+
+				for (const auto& body2 : m_Bodies)
+				{
+					if (body != body2 && body->IsCollide(body2))
+					{
+						body->OnCollision(body2);
+						body2->OnCollision(body);
+					}
 				}
 			}
 		}
 
-		if (dynamicBodiesCount > 0)
-		{
-			int item = i % (int)m_DynamicBodies.size();
-			const auto& body = m_DynamicBodies[item];
-
-			body->Step(dt);
-
-			if (body == nullptr || body->IsDead)
-			{
-				m_DynamicBodies.erase(m_DynamicBodies.begin() + item);
-			}
-
-			for (const auto& body2 : m_DynamicBodies)
-			{
-				if (body != body2 && body->IsCollide(body2))
-				{
-					body->OnCollision(body2);
-				}
-			}
-		}
-
-		s_Stat.DynamicBodies = m_DynamicBodies.size();
-		s_Stat.StaticBodies = m_StaticBodies.size();
-
-		i = (i + 1) % (staticBodiesCount > dynamicBodiesCount ? staticBodiesCount : dynamicBodiesCount);
+		// i++;
+		// if (i >= (int)m_Bodies.size())
+		// {
+		// 	i = 0;
+		// }
+		s_Stat.Bodies = m_Bodies.size();
 	}
 
 	const PhyzicsStat& Phyzics::GetStatistics()

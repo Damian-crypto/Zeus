@@ -35,7 +35,7 @@ std::shared_ptr<Enemy> EnemyRegistry::CreateEnemy(EnemyType type)
 				}
 			};
 
-			m_Phyzics->AddDynamicBody(enemy->GetPhyzicalBody());
+			m_Phyzics->AddBody(enemy->GetPhyzicalBody());
 
 			return enemy;
 		}

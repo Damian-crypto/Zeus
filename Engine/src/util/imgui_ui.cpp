@@ -10,8 +10,10 @@
 
 namespace zeus
 {
-	void ImGUI::Init()
+	void ImGUI::Init(bool gameUI)
 	{
+        m_GameUI = gameUI;
+
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -65,141 +67,138 @@ namespace zeus
 
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(ImVec2{ 100, 100 });
-#if 1
-        // If you strip some features of, this demo is pretty much equivalent to calling DockSpaceOverViewport()!
-        // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
-        // In this specific demo, we are not using DockSpaceOverViewport() because:
-        // - we allow the host window to be floating/moveable instead of filling the viewport (when opt_fullscreen == false)
-        // - we allow the host window to have padding (when opt_padding == true)
-        // - we have a local menu bar in the host window (vs. you could use BeginMainMenuBar() + DockSpaceOverViewport() in your code!)
-        // TL;DR; this demo is more complicated than what you would normally use.
-        // If we removed all the options we are showcasing, this demo would become:
-        //void ShowExampleAppDockSpace()
-        //{
-        //    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-        //}
-
-        static bool p_open = false;
-        static bool opt_fullscreen = true;
-        static bool opt_padding = false;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
-        if (opt_fullscreen)
+        // ImGui::SetNextWindowSize(ImVec2{ 100, 100 });
+        
+        if (!m_GameUI)
         {
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-        else
-        {
-            dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-        }
+            // If you strip some features of, this demo is pretty much equivalent to calling DockSpaceOverViewport()!
+            // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
+            // In this specific demo, we are not using DockSpaceOverViewport() because:
+            // - we allow the host window to be floating/moveable instead of filling the viewport (when opt_fullscreen == false)
+            // - we allow the host window to have padding (when opt_padding == true)
+            // - we have a local menu bar in the host window (vs. you could use BeginMainMenuBar() + DockSpaceOverViewport() in your code!)
+            // TL;DR; this demo is more complicated than what you would normally use.
+            // If we removed all the options we are showcasing, this demo would become:
+            //void ShowExampleAppDockSpace()
+            //{
+            //    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+            //}
 
-        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-        // and handle the pass-thru hole, so we ask Begin() to not render a background.
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
+            static bool p_open = false;
+            static bool opt_fullscreen = true;
+            static bool opt_padding = false;
+            static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-        if (!opt_padding)
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("Zues Workspace", &p_open, window_flags);
-        if (!opt_padding)
-            ImGui::PopStyleVar();
-
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
-
-        // Submit the DockSpace
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("MyWorkspace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
-        else
-        {
-            LOG_ENGINE(Error, "Runtime Error: ImGui docking is not enabled!");
-        }
-
-    #if 0
-        if (ImGui::BeginMenuBar())
-        {
-            const static std::regex menuRegex("menu\\$\\$(.*)");
-            const static std::regex menuItemRegex("menu-item\\$\\$(.*)");
-
-            for (size_t i = 0; i < m_MenuItems.size(); i++)
+            // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+            // because it would be confusing to have two docking targets within each others.
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
+            if (opt_fullscreen)
             {
-                MenuItem item = m_MenuItems[i];
-                size_t nameStart = item.ItemName.find("$");
-                std::string name = item.ItemName.substr(nameStart + 2);
-                if (std::regex_match(item.ItemName, menuRegex))
-                {
-                    if (ImGui::BeginMenu(name.c_str()))
-                    {
-                        for (size_t j = i; j < m_MenuItems.size(); j++)
-                        {
-                            item = m_MenuItems[j];
-                            nameStart = item.ItemName.find("$");
-                            name = item.ItemName.substr(nameStart + 2);
-                            LOG_ENGINE(Trace, name.c_str());
-                            if (std::regex_match(item.ItemName, menuItemRegex))
-                            {
-                                if (ImGui::MenuItem(name.c_str()))
-                                {
-                                    item.Action();
-                                }
-                            }
-                        }
-
-                        ImGui::EndMenu();
-                    }
-                }
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImGui::SetNextWindowPos(viewport->WorkPos);
+                ImGui::SetNextWindowSize(viewport->WorkSize);
+                ImGui::SetNextWindowViewport(viewport->ID);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+                window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+            }
+            else
+            {
+                dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
             }
 
-        #if 0
-            if (ImGui::BeginMenu("Options"))
+            // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+            // and handle the pass-thru hole, so we ask Begin() to not render a background.
+            if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+                window_flags |= ImGuiWindowFlags_NoBackground;
+
+            // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+            // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+            // all active windows docked into it will lose their parent and become undocked.
+            // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+            // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+            if (!opt_padding)
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            ImGui::Begin("Zues Workspace", &p_open, window_flags);
+            if (!opt_padding)
+                ImGui::PopStyleVar();
+
+            if (opt_fullscreen)
+                ImGui::PopStyleVar(2);
+
+            // Submit the DockSpace
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
             {
-                // Disabling fullscreen would allow the window to be moved to the front of other windows,
-                // which we can't undo at the moment without finer window depth/z control.
-                ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-                ImGui::MenuItem("Padding", NULL, &opt_padding);
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-                if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-                if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-                if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-                if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
-                {
-                    p_open = false;
-                }
-                ImGui::EndMenu();
+                ImGuiID dockspace_id = ImGui::GetID("MyWorkspace");
+                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
             }
-        #endif
-            ImGui::EndMenuBar();
+            else
+            {
+                LOG_ENGINE(Error, "Runtime Error: ImGui docking is not enabled!");
+            }
+
+            // if (ImGui::BeginMenuBar())
+            // {
+            //     const static std::regex menuRegex("menu\\$\\$(.*)");
+            //     const static std::regex menuItemRegex("menu-item\\$\\$(.*)");
+
+            //     for (size_t i = 0; i < m_MenuItems.size(); i++)
+            //     {
+            //         MenuItem item = m_MenuItems[i];
+            //         size_t nameStart = item.ItemName.find("$");
+            //         std::string name = item.ItemName.substr(nameStart + 2);
+            //         if (std::regex_match(item.ItemName, menuRegex))
+            //         {
+            //             if (ImGui::BeginMenu(name.c_str()))
+            //             {
+            //                 for (size_t j = i; j < m_MenuItems.size(); j++)
+            //                 {
+            //                     item = m_MenuItems[j];
+            //                     nameStart = item.ItemName.find("$");
+            //                     name = item.ItemName.substr(nameStart + 2);
+            //                     LOG_ENGINE(Trace, name.c_str());
+            //                     if (std::regex_match(item.ItemName, menuItemRegex))
+            //                     {
+            //                         if (ImGui::MenuItem(name.c_str()))
+            //                         {
+            //                             item.Action();
+            //                         }
+            //                     }
+            //                 }
+
+            //                 ImGui::EndMenu();
+            //             }
+            //         }
+            //     }
+
+                // if (ImGui::BeginMenu("Options"))
+                // {
+                //     // Disabling fullscreen would allow the window to be moved to the front of other windows,
+                //     // which we can't undo at the moment without finer window depth/z control.
+                //     ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
+                //     ImGui::MenuItem("Padding", NULL, &opt_padding);
+                //     ImGui::Separator();
+
+                //     if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
+                //     if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
+                //     if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
+                //     if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
+                //     if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
+                //     ImGui::Separator();
+
+                //     if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
+                //     {
+                //         p_open = false;
+                //     }
+                //     ImGui::EndMenu();
+                // }
+                // ImGui::EndMenuBar();
+            // }
+
+            ImGui::End();
         }
-
-    #endif
-
-        ImGui::End();
-#endif
 	}
 
 	void ImGUI::End()

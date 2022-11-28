@@ -49,7 +49,7 @@ void Gun::Attack(float direction)
 	{
 		LOG(Error, "Runtime Error: Phyzics engine is not initialized for calculations!");
 	}
-	m_Phyzics->AddDynamicBody(bullet.PhysicalBody);
+	m_Phyzics->AddBody(bullet.PhysicalBody);
 	m_Bullets.push_back(bullet);
 }
 

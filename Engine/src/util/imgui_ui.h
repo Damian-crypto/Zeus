@@ -19,9 +19,10 @@ namespace zeus
 	private:
 		GLFWwindow* m_NativeWindow;
 		std::vector<MenuItem> m_MenuItems;
+		bool m_GameUI = true;
 
 	public:
-		void Init();
+		void Init(bool gameUI);
 		void Begin();
 		void End();
 		void Destroy();

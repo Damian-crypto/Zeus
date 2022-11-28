@@ -64,7 +64,7 @@ public:
 		int idx = -1;
 		glm::vec3 Position;
 		glm::ivec2 TexCoords;
-		TileType Type;
+		TileType Type = TileType::None;
 	};
 
 private:
@@ -80,7 +80,7 @@ private:
 public:
 	void OnStart() override
 	{
-		LoadLevel("assets/levels/testlevel.data");
+		LoadLevel("assets/levels/level.data");
 	}
 
 	zeus::QuadData quad;
@@ -248,7 +248,7 @@ public:
 
 		if (!file.is_open())
 		{
-			LOG(Error, "Level file couldn't be found!");
+			LOG(Info, "Level is not loaded -> level file not found!");
 			return;
 		}
 
@@ -321,7 +321,10 @@ public:
 
 					Tile tile;
 					tile.TexCoords = { texX, texY };
-					tile.Type = (TileType)mode;
+					if (mode > (int)TileType::None || mode < 0)
+						tile.Type = TileType::None;
+					else
+						tile.Type = (TileType)mode;
 					// tile.Position = { posX, posY, 0 };
 					tile.idx = idx;
 
@@ -629,8 +632,8 @@ public:
 					ImGui::Image((ImTextureID)tex->GetTextureID(), ImVec2(32, 32), topLeft, bottomRight);
 				}
 
-				static const char* items[] = { "None", "Water", "Rock", "Tree" };
-				if (tile.Type < SandboxLevel::TileType::None)
+				static const char* items[] = { "Water", "Rock", "Tree", "None" };
+				if (true)
 				{
 					int item_current_idx = (int)tile.Type;
 					const char* combo_preview_value = items[item_current_idx];
@@ -658,7 +661,6 @@ public:
 
 				ImGui::Text("Selected entity id: %d", savedID);
 			}
-				// QUICK_LOG(Trace, "arrived");
 
 			ImGui::Text("%f %f: %d", m_CursorPos.x, m_CursorPos.y, id);
 
@@ -1026,7 +1028,7 @@ int main()
 {
 	try
 	{
-		auto app = new zeus::Application({ "Sandbox", WIDTH, HEIGHT });
+		auto app = new zeus::Application({ "Sandbox", WIDTH, HEIGHT, false });
 		app->Init();
 		app->PushLayer(new SandboxLayer("sandbox"));
 		app->PushLayer(new EngineInfoLayer("engine"));

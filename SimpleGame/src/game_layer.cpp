@@ -42,6 +42,7 @@ GameLayer::GameLayer(const char* name)
 	// Initializing Level manager
 	const auto& lvl1 = std::make_shared<BeginLevel>();
 	lvl1->SetLevelSize(WIDTH, HEIGHT);
+	lvl1->SetPhyzicsEngine(m_Phyzics);
 	m_LevelManager.AddLevel(m_CurrentLevel, lvl1);
 	m_LevelManager.GetLevel(m_CurrentLevel)->GetLevelResources().TexManager = m_TexManager;
 
@@ -142,8 +143,7 @@ void GameLayer::OnRender()
 
 		ImGui::Text("Enemies count: %d", m_EnemyReg->GetEnemies().size());
 		const auto& phyzStat = m_Phyzics->GetStatistics();
-		ImGui::Text("Dynamic bodies: %d", phyzStat.DynamicBodies);
-		ImGui::Text("Static bodies: %d", phyzStat.StaticBodies);
+		ImGui::Text("Physical bodies: %d", phyzStat.Bodies);
 
 		ImGui::End();
 	}

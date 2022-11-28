@@ -45,7 +45,7 @@ namespace zeus
 		m_Window = Window::GetWindow();
 		m_Window->CreateWindow({ m_Properties.Title, m_Properties.Width, m_Properties.Height });
 		m_Window->VSyncEnable(true);
-		m_ImGui->Init();
+		m_ImGui->Init(m_Properties.GameUI);
 
 		// MenuItem fileMenu;
 		// fileMenu.ItemName = "menu$$File";
