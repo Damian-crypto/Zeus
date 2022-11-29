@@ -9,7 +9,7 @@ Character::Character()
 	m_PhysicalBody->Type = zeus::BodyShape::Quad;
 	m_PhysicalBody->Position = m_Position;
 	m_PhysicalBody->InternalData = (void*)"player";
-	m_PhysicalBody->SetWidth(80.0f);
+	m_PhysicalBody->SetWidth(90.0f);
 	m_PhysicalBody->SetHeight(100.0f);
 	m_PhysicalBody->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body) {
 		const auto& pos = body->Position;
@@ -25,8 +25,9 @@ float step = 0.0f;
 void Character::Move(float x, float y, float z, bool lock)
 {
 	m_Moving = true;
-
 	m_LastPosition = m_Position;
+
+	y *= 0.5f;
 
 	// Direction of the player looking at
 	//		0 - North
