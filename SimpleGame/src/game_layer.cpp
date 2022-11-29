@@ -23,7 +23,7 @@ GameLayer::GameLayer(const char* name)
 	m_TexManager = zeus::TextureManager::GetInstance();
 	m_TexManager->PutTexture({ "wood", "assets/textures/wood.png" });
 	m_TexManager->PutSpritesheet({ "person_sheet", "assets/textures/spritesheets/tilemap_packed.png", 16, true });
-	m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/spritesheets/roguelike_spritesheet.png", 17, true });
+	m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/spritesheets/mytilemap.png", 16, true });
 	m_TexManager->PutSpritesheet({ "bullet_sheet", "assets/textures/spritesheets/explosion.png", 240, true });
 
 	// Initializing Enemy registry
@@ -48,7 +48,7 @@ GameLayer::GameLayer(const char* name)
 
 	// Initializing Renderer
 	zeus::Renderer::Init();
-	zeus::Renderer::SetBackgroundColor(GREY);
+	zeus::Renderer::SetBackgroundColor(CYAN);
 	zeus::Renderer::SetColorBlending(true);
 	zeus::Renderer::SetDepthTest(true);
 }

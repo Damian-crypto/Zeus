@@ -293,6 +293,9 @@ public:
 			// Escape blank line
 			std::getline(file, line);
 
+			// Escape map header
+			std::getline(file, line);
+
 			// Reading map
 			while (std::getline(file, line))
 			{
@@ -384,7 +387,7 @@ public:
 		textureManager->PutTexture({ "wood_tex", "assets/textures/wood.png" });
 		textureManager->PutTexture({ "window_tex", "assets/textures/window.png" });
 		textureManager->PutSpritesheet({ "person_sheet", "assets/textures/tilemap_packed.png", 16, true });
-		textureManager->PutSpritesheet({ "building_sheet", "assets/textures/roguelike_spritesheet.png", 17, true });
+		textureManager->PutSpritesheet({ "building_sheet", "assets/textures/mytilemap.png", 16, true });
 
 		const auto& lvl1 = std::make_shared<SandboxLevel>();
 		m_LevelManager.AddLevel(1, lvl1);
@@ -802,14 +805,14 @@ public:
 			int sentinel = contentRegion.x / int(tileSize.x + 14);
 
 			uint32_t x = 1, y = 1;
-			static int tilesCount = 57 * 31;
+			static int tilesCount = 6 * 3;
 			for (int i = 0; i < tilesCount; i++)
 			{
 				const auto& tex = textureManager->GetSubTexture("building_sheet", x, y);
 				id = (ImTextureID)tex->GetTextureID();
 				bottomRight = *(ImVec2*)&tex->GetTexCoords()[1];
 				topLeft = *(ImVec2*)&tex->GetTexCoords()[3];
-				int texID = x * 57 + y;
+				int texID = x + y * 6;
 				ImGui::PushID(texID);
 				if (ImGui::ImageButton(id, tileSize, topLeft, bottomRight))
 				{
