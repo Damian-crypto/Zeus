@@ -9,6 +9,7 @@
 
 extern glm::ivec2 platformPos;
 
+std::shared_ptr<Enemy> enemy;
 GameLayer::GameLayer(const char* name)
 {
 	// Initializing Phyzics engine
@@ -29,7 +30,7 @@ GameLayer::GameLayer(const char* name)
 	// Initializing Enemy registry
 	m_EnemyReg = std::make_shared<EnemyRegistry>(m_TexManager);
 	m_EnemyReg->SetPhyzicsEngine(m_Phyzics);
-	m_EnemyReg->CreateEnemy(EnemyType::Human);
+	enemy = m_EnemyReg->CreateEnemy(EnemyType::Human);
 
 	// Initializing Main player
 	m_Player = std::make_shared<Player>();
@@ -154,6 +155,8 @@ void GameLayer::OnRender()
 void GameLayer::OnUpdate(float dt)
 {
 	auto const& cam = m_Camera->GetProperties();
+	float velocity = 150.0f * dt;
+
 	if (m_Keys[KEY_LEFT_CONTROL])
 	{
 		if (m_Keys[KEY_D])
@@ -175,54 +178,21 @@ void GameLayer::OnUpdate(float dt)
 	}
 	else
 	{
-		float velocity = 150.0f * dt;
 		if (m_Keys[KEY_A])
 		{
-			if (m_Player->GetPosition().x - 300.0f < platformPos.x)
-			{
-				platformPos.x -= velocity;
-				m_Player->Move(-velocity, 0.0f, 0.0f);
-			}
-			else
-			{
-				m_Player->Move(-velocity, 0.0f, 0.0f);
-			}
+			m_Player->Move(-velocity, 0.0f, 0.0f);
 		}
 		if (m_Keys[KEY_D])
 		{
-			if (m_Player->GetPosition().x + 300.0f > platformPos.x + WIDTH)
-			{
-				platformPos.x += velocity;
-				m_Player->Move(velocity, 0.0f, 0.0f);
-			}
-			else
-			{
-				m_Player->Move(velocity, 0.0f);
-			}
+			m_Player->Move(velocity, 0.0f, 0.0f);
 		}
 		if (m_Keys[KEY_W])
 		{
-			if (m_Player->GetPosition().y + 300.0f > platformPos.y + HEIGHT)
-			{
-				platformPos.y += velocity;
-				m_Player->Move(0.0f, velocity, 0.0f);
-			}
-			else
-			{
-				m_Player->Move(0.0f, velocity);
-			}
+			m_Player->Move(0.0f, velocity);
 		}
 		if (m_Keys[KEY_S])
 		{
-			if (m_Player->GetPosition().y - 300.0f < platformPos.y)
-			{
-				platformPos.y -= velocity;
-				m_Player->Move(0.0f, -velocity, 0.0f);
-			}
-			else
-			{
-				m_Player->Move(0.0f, -velocity);
-			}
+			m_Player->Move(0.0f, -velocity);
 		}
 	}
 

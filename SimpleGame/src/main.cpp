@@ -9,7 +9,15 @@ int main()
 {
 	try
 	{
-		auto app = new zeus::Application({ "City game", WIDTH, HEIGHT });
+		zeus::ApplicationProperties props {
+			.Title = "City Game",
+			.Width = WIDTH,
+			.Height = HEIGHT,
+			.GameUI = true,
+			.Resizable = false
+		};
+
+		auto app = new zeus::Application(props);
 		app->Init();
 		app->SetVSync(true);
 		zeus::Layer* layer = new GameLayer("city_game");

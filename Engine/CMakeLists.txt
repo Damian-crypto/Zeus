@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
     src/event/event.cpp
     src/event/key_event.cpp
     src/event/mouse_event.cpp
+    src/event/window_event.cpp
     src/renderer/framebuffer.cpp
     src/renderer/renderer.cpp
     src/renderer/render_command.cpp

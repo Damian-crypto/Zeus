@@ -1,6 +1,7 @@
 #include "corepch.h"
 #include "windows_window.h"
 
+#include "event/window_event.h"
 #include "event/mouse_event.h"
 #include "event/key_event.h"
 #include "util/logger.h"
@@ -24,6 +25,7 @@ namespace zeus
 #if DEBUG_MODE
 		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
+		glfwWindowHint(GLFW_RESIZABLE, props.Resizable ? GL_TRUE : GL_FALSE);
 
 		m_NativeWindow = glfwCreateWindow((int)m_Properties.Width, (int)m_Properties.Height, m_Properties.Title.c_str(), nullptr, nullptr);
 		if (m_NativeWindow == nullptr)
@@ -92,6 +94,7 @@ namespace zeus
 
 		glfwSetFramebufferSizeCallback(m_NativeWindow, [](GLFWwindow* window, int width, int height) {
 			auto& props = Application::GetInstance()->GetApplicationProperties();
+
 			props.Width = (uint32_t)width;
 			props.Height = (uint32_t)height;
 			
@@ -105,6 +108,11 @@ namespace zeus
 
 		glfwSetScrollCallback(m_NativeWindow, [](GLFWwindow* window, double x, double y) {
 			MouseScrolledEvent evt((float)x, (float)y);
+			Application::GetInstance()->OnEvent(evt);
+		});
+
+		glfwSetWindowSizeCallback(m_NativeWindow, [](GLFWwindow* window, int width, int height) {
+			WindowResizedEvent evt(width, height);
 			Application::GetInstance()->OnEvent(evt);
 		});
 	}

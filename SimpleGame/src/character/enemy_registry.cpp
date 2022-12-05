@@ -29,10 +29,14 @@ std::shared_ptr<Enemy> EnemyRegistry::CreateEnemy(EnemyType type)
 			enemy->GetPhyzicalBody()->InternalData = (void*)"enemy";
 			enemy->GetPhyzicalBody()->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body) {
 				std::shared_ptr<Enemy> ptr = m_Enemies.back();
-				if (strcmp((const char*)body->InternalData, "bullet") == 0)
+				const char* bodyData = (const char*)body->InternalData;
+				if (strcmp(bodyData, "bullet") == 0)
 				{
 					ptr->IsDead = true;
 				}
+
+				ptr->CollideObject = std::string(bodyData);
+				ptr->Collided = true;
 			};
 
 			m_Phyzics->AddBody(enemy->GetPhyzicalBody());

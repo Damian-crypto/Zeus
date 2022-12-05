@@ -1,9 +1,10 @@
 #include "game_level.h"
 
+#include <memory>
 #include <iostream>
 #include <fstream>
 
-glm::ivec2 platformPos{ 0, 0 };
+glm::ivec2 platformPos{ -230, -96 };
 
 void BeginLevel::OnStart()
 {
@@ -104,6 +105,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		// Escape blank line
 		std::getline(file, line);
 
+		int i = 0;
 		// Reading map
 		while (std::getline(file, line))
 		{
@@ -136,6 +138,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				// tile.Position = { posX, posY, 0 };
 				tile.idx = idx;
 				tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
+				i++;
 				if (mode == 1) {
 					tile.PhysicalBody->InternalData = (void*)"rock";
 					m_Phyzics->AddBody(tile.PhysicalBody);

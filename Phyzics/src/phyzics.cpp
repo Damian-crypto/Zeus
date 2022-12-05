@@ -1,6 +1,7 @@
 #include "phyzics.h"
 
 #include <iostream>
+#include <cstring>
 
 namespace zeus
 {
@@ -47,6 +48,7 @@ namespace zeus
 		// 	i = 0;
 		// }
 		s_Stat.Bodies = m_Bodies.size();
+		return;
 	}
 
 	const PhyzicsStat& Phyzics::GetStatistics()

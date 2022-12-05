@@ -22,6 +22,9 @@ Character::Character()
 }
 
 float step = 0.0f;
+/* This function will move the character
+ * @param lock stop animation
+ */
 void Character::Move(float x, float y, float z, bool lock)
 {
 	m_Moving = true;

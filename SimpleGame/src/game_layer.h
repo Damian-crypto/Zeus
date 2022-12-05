@@ -3,6 +3,7 @@
 #include "zeus.h"
 #include "character/character.h"
 #include "character/player.h"
+#include "character/enemy.h"
 #include "character/enemy_registry.h"
 
 #include <string>

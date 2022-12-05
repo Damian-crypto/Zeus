@@ -14,7 +14,9 @@ namespace zeus
 		MouseScrolled,
 
 		KeyPressed,
-		KeyReleased
+		KeyReleased,
+
+		WindowResized
 	};
 
 	class Event

@@ -16,6 +16,7 @@ namespace zeus
 		uint32_t Width{ 1280 };
 		uint32_t Height{ 720 };
 		bool GameUI{ true };
+		bool Resizable { true };
 	};
 
 	class Application

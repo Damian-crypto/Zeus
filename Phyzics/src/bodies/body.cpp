@@ -14,10 +14,20 @@ namespace zeus
 		{
 			case BodyShape::Quad:
 			{
+				//                   | |
+				// shape.x - half <--|*|--> shape.x + half
+				//                   | |
+				//                   |*| pos
+				//                   | |
+				//                   | |
+				//                   | |
+				// Below conditions check whether "this body" is in the range of
+				// "shape's" body (above illustration only for x-axis; same for y-axis)
+
 				bool xCollision = shape->Position.x + shape->HalfWidth >= Position.x
 					&& shape->Position.x - shape->HalfWidth <= Position.x;
-				bool yCollision = shape->Position.y + shape->HalfHeight >= Position.y
-					&& shape->Position.y - shape->HalfHeight <= Position.y;
+				bool yCollision = shape->Position.y + shape->HalfHeight >= Position.y// - 10
+					&& shape->Position.y - shape->HalfHeight <= Position.y ;//+ 10;
 
 				return xCollision && yCollision;
 			}
