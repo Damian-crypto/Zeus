@@ -29,12 +29,14 @@ namespace zeus
 				if (body == nullptr || body->IsDead)
 				{
 					m_Bodies.erase(m_Bodies.begin() + i);
+					continue;
 				}
 
 				for (const auto& body2 : m_Bodies)
 				{
 					if (body != body2 && body->IsCollide(body2))
 					{
+						// std::cout << ((const char*)body->InternalData) << " is collided with " << ((const char*)body2->InternalData) << '\n';
 						body->OnCollision(body2);
 						body2->OnCollision(body);
 					}

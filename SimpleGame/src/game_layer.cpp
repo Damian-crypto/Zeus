@@ -31,14 +31,17 @@ GameLayer::GameLayer(const char* name)
 	m_EnemyReg = std::make_shared<EnemyRegistry>(m_TexManager);
 	m_EnemyReg->SetPhyzicsEngine(m_Phyzics);
 	enemy = m_EnemyReg->CreateEnemy(EnemyType::Human);
+	enemy->SetPosition({ WIDTH / 2 - 150, HEIGHT / 2 - 50, 0.1f });
+	enemy->SetWeapon(WeaponType::Gun);
 
 	// Initializing Main player
 	m_Player = std::make_shared<Player>();
 	m_Player->SetPhyzicsEngine(m_Phyzics);
 	m_Player->SetTextureManager(m_TexManager);
-	m_Player->SetPosition({ WIDTH / 2, HEIGHT / 2, 0.11f });
+	m_Player->SetPosition({ WIDTH / 2 + 100, HEIGHT / 2, 0.11f });
 	m_Player->SetSprite({ { 24.0f, 18.0f, 2.0f }, { 32.0f, 32.0f, 0.0f }, "person_sheet" });
 	m_Player->SetWeapon(WeaponType::Gun);
+	m_EnemyReg->SetTarget(m_Player);
 
 	// Initializing Level manager
 	const auto& lvl1 = std::make_shared<BeginLevel>();
@@ -54,6 +57,7 @@ GameLayer::GameLayer(const char* name)
 	zeus::Renderer::SetDepthTest(true);
 }
 
+bool playerAttack = false;
 void GameLayer::OnEvent(zeus::Event& evt)
 {
 	zeus::EventDispatcher dispatcher(evt);
@@ -91,9 +95,21 @@ void GameLayer::OnEvent(zeus::Event& evt)
 		switch (button)
 		{
 		case MOUSE_LEFT:
-			const auto& playerPos = m_Player->GetPosition();
-			float dir = std::atan2(((HEIGHT - m_MousePos.y) - playerPos.y), (m_MousePos.x - playerPos.x));
-			m_Player->Attack(dir);
+			playerAttack = true;
+			break;
+		}
+
+		return true;
+	};
+
+	std::function<bool()> mouseReleased = [&]() -> bool {
+		auto mouseEvent = (zeus::MouseReleasedEvent&)evt;
+		int button = mouseEvent.GetMouseButton();
+
+		switch (button)
+		{
+		case MOUSE_LEFT:
+			playerAttack = false;
 			break;
 		}
 
@@ -110,6 +126,7 @@ void GameLayer::OnEvent(zeus::Event& evt)
 
 	dispatcher.Dispatch(zeus::EventType::MouseMoved, mouseMoved);
 	dispatcher.Dispatch(zeus::EventType::MousePressed, mousePressed);
+	dispatcher.Dispatch(zeus::EventType::MouseReleased, mouseReleased);
 	dispatcher.Dispatch(zeus::EventType::KeyPressed, keyPressed);
 	dispatcher.Dispatch(zeus::EventType::KeyReleased, keyReleased);
 }
@@ -155,7 +172,7 @@ void GameLayer::OnRender()
 void GameLayer::OnUpdate(float dt)
 {
 	auto const& cam = m_Camera->GetProperties();
-	float velocity = 150.0f * dt;
+	float speed = 150.0f * dt;
 
 	if (m_Keys[KEY_LEFT_CONTROL])
 	{
@@ -180,23 +197,33 @@ void GameLayer::OnUpdate(float dt)
 	{
 		if (m_Keys[KEY_A])
 		{
-			m_Player->Move(-velocity, 0.0f, 0.0f);
+			m_Player->Move({ -speed, 0.0f, 0.0f });
 		}
 		if (m_Keys[KEY_D])
 		{
-			m_Player->Move(velocity, 0.0f, 0.0f);
+			m_Player->Move({ speed, 0.0f, 0.0f });
 		}
 		if (m_Keys[KEY_W])
 		{
-			m_Player->Move(0.0f, velocity);
+			m_Player->Move({ 0.0f, speed, 0.0f });
 		}
 		if (m_Keys[KEY_S])
 		{
-			m_Player->Move(0.0f, -velocity);
+			m_Player->Move({ 0.0f, -speed, 0.0f});
 		}
 	}
 
+	if (playerAttack)
+	{
+		const auto& playerPos = m_Player->GetPosition();
+		float dir = std::atan2(((HEIGHT - m_MousePos.y) - playerPos.y), (m_MousePos.x - playerPos.x));
+		m_Player->Attack(dir);
+	}
+
+	float yFactor = enemy->GetVelocity().y < 0 ? -1.0f : 1.0f;
+	enemy->SetVelocity({ 0, yFactor * speed, 0 });
+
+	m_Phyzics->Step(dt);
 	m_Player->OnUpdate(dt);
 	m_EnemyReg->OnUpdate(dt);
-	m_Phyzics->Step(dt);
 }

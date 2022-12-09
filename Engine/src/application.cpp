@@ -17,9 +17,10 @@ namespace zeus
 			LOG_ENGINE(Error, "Application already exists!");
 		}
 
-		m_ImGui = std::make_shared<ImGUI>();
 		s_Instance = this;
 		s_Instance->m_Properties = props;
+		m_ImGui = std::make_shared<ImGUI>();
+		m_ImGui->SetGamingMode(props.GameUI);
 	}
 
 	void Application::OnEvent(Event& evt)

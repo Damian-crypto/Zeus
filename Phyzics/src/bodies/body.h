@@ -24,11 +24,11 @@ namespace zeus
 
 	public:
 		glm::vec3 Position;
-		glm::vec3 Direction;
+		glm::vec3 Velocity;
 		float MovementSpeed;
 		float Radius;
 		BodyShape Type = BodyShape::None;
-		std::function<void(const std::shared_ptr<PhyzicalBody> body)> CollideFunction;
+		std::function<void(const std::shared_ptr<PhyzicalBody> body, PhyzicalBody* me)> CollideFunction;
 		bool IsDead = false;
 		void* InternalData = nullptr;
 

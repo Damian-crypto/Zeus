@@ -27,7 +27,10 @@ namespace zeus
 		void End();
 		void Destroy();
 
+		std::string ShowOpenFileDialog();
+
 		void AddMenuItem(const MenuItem& item);
+		void SetGamingMode(bool gaming);
 
 		static bool IsBlocking();
 	};

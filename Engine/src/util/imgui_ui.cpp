@@ -139,63 +139,67 @@ namespace zeus
                 LOG_ENGINE(Error, "Runtime Error: ImGui docking is not enabled!");
             }
 
-            // if (ImGui::BeginMenuBar())
-            // {
-            //     const static std::regex menuRegex("menu\\$\\$(.*)");
-            //     const static std::regex menuItemRegex("menu-item\\$\\$(.*)");
+            if (!m_GameUI)
+            {
+                if (ImGui::BeginMenuBar())
+                {
+                    const static std::regex menuRegex("menu\\$\\$(.*)");
+                    const static std::regex menuItemRegex("menu-item\\$\\$(.*)");
 
-            //     for (size_t i = 0; i < m_MenuItems.size(); i++)
-            //     {
-            //         MenuItem item = m_MenuItems[i];
-            //         size_t nameStart = item.ItemName.find("$");
-            //         std::string name = item.ItemName.substr(nameStart + 2);
-            //         if (std::regex_match(item.ItemName, menuRegex))
-            //         {
-            //             if (ImGui::BeginMenu(name.c_str()))
-            //             {
-            //                 for (size_t j = i; j < m_MenuItems.size(); j++)
-            //                 {
-            //                     item = m_MenuItems[j];
-            //                     nameStart = item.ItemName.find("$");
-            //                     name = item.ItemName.substr(nameStart + 2);
-            //                     LOG_ENGINE(Trace, name.c_str());
-            //                     if (std::regex_match(item.ItemName, menuItemRegex))
-            //                     {
-            //                         if (ImGui::MenuItem(name.c_str()))
-            //                         {
-            //                             item.Action();
-            //                         }
-            //                     }
-            //                 }
+                    for (size_t i = 0; i < m_MenuItems.size(); i++)
+                    {
+                        MenuItem item = m_MenuItems[i];
+                        size_t nameStart = item.ItemName.find("$");
+                        std::string name = item.ItemName.substr(nameStart + 2);
+                        if (std::regex_match(item.ItemName, menuRegex))
+                        {
+                            if (ImGui::BeginMenu(name.c_str()))
+                            {
+                                for (size_t j = i; j < m_MenuItems.size(); j++)
+                                {
+                                    item = m_MenuItems[j];
+                                    nameStart = item.ItemName.find("$");
+                                    name = item.ItemName.substr(nameStart + 2);
+                                    // LOG_ENGINE(Trace, name.c_str());
+                                    if (std::regex_match(item.ItemName, menuItemRegex))
+                                    {
+                                        if (ImGui::MenuItem(name.c_str()))
+                                        {
+                                            item.Action();
+                                        }
+                                    }
+                                }
 
-            //                 ImGui::EndMenu();
-            //             }
-            //         }
-            //     }
+                                ImGui::EndMenu();
+                            }
+                        }
+                    }
 
-                // if (ImGui::BeginMenu("Options"))
-                // {
-                //     // Disabling fullscreen would allow the window to be moved to the front of other windows,
-                //     // which we can't undo at the moment without finer window depth/z control.
-                //     ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-                //     ImGui::MenuItem("Padding", NULL, &opt_padding);
-                //     ImGui::Separator();
+                    // if (ImGui::BeginMenu("Options"))
+                    // {
+                    //     // Disabling fullscreen would allow the window to be moved to the front of other windows,
+                    //     // which we can't undo at the moment without finer window depth/z control.
+                    //     ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
+                    //     ImGui::MenuItem("Padding", NULL, &opt_padding);
+                    //     ImGui::Separator();
 
-                //     if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-                //     if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-                //     if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-                //     if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-                //     if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
-                //     ImGui::Separator();
+                    //     if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
+                    //     if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
+                    //     if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
+                    //     if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
+                    //     if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
+                    //     ImGui::Separator();
 
-                //     if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
-                //     {
-                //         p_open = false;
-                //     }
-                //     ImGui::EndMenu();
-                // }
-                // ImGui::EndMenuBar();
-            // }
+                    //     if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
+                    //     {
+                    //         p_open = false;
+                    //     }
+                    //     ImGui::EndMenu();
+                    // }
+
+                    ImGui::EndMenuBar();
+                }
+            }
 
             ImGui::End();
         }
@@ -245,5 +249,21 @@ namespace zeus
         }
 
         return false;
+    }
+
+    void ImGUI::SetGamingMode(bool gaming)
+    {
+        m_GameUI = gaming;
+    }
+
+    std::string ImGUI::ShowOpenFileDialog()
+    {
+        LOG(Trace, "Hello");
+        // ImGui::BeginPopupModal("Open File", nullptr);
+        // {
+        //     ImGui::Text("File");
+
+        //     ImGui::EndPopup();
+        // }
     }
 }

@@ -11,11 +11,16 @@ Character::Character()
 	m_PhysicalBody->InternalData = (void*)"player";
 	m_PhysicalBody->SetWidth(90.0f);
 	m_PhysicalBody->SetHeight(100.0f);
-	m_PhysicalBody->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body) {
+	m_PhysicalBody->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body, zeus::PhyzicalBody* me) {
 		const auto& pos = body->Position;
 		if (strcmp((const char*)body->InternalData, "rock") == 0)
 		{
 			SetPosition(m_LastPosition);
+		}
+		if (strcmp((const char*)body->InternalData, "bullet") == 0)
+		{
+			me->IsDead = true;
+			QUICK_LOG(Trace, "hit by bullet");
 		}
 		// QUICK_LOG(Trace, "%s hit by %s at %f %f", (const char*)m_PhysicalBody->InternalData, (const char*)body->InternalData, pos.x, pos.y);
 	};
@@ -25,42 +30,54 @@ float step = 0.0f;
 /* This function will move the character
  * @param lock stop animation
  */
-void Character::Move(float x, float y, float z, bool lock)
+void Character::Move(glm::vec3 velocity, bool lock)
 {
 	m_Moving = true;
 	m_LastPosition = m_Position;
 
-	y *= 0.5f;
+	if (velocity.x == 0 && velocity.y == 0 && velocity.z == 0)
+	{
+		velocity = GetVelocity();
+	}
+	lock = !(velocity.x != 0 || velocity.y != 0 || velocity.z != 0);
+
+	velocity.y *= 0.5f;
+	if (!lock)
+	{
+		m_Position += velocity;
+	}
 
 	// Direction of the player looking at
 	//		0 - North
 	//		1 - East
 	//		2 - South
 	//		3 - West
-	if (x != 0)
+	if (velocity.x != 0)
 	{
-		m_SpriteCoords.x = m_Sprite.Coords.x + (x > 0 ? 3 : 0);
-		if (!lock)
-			m_Position.x += x;
+		m_SpriteCoords.x = m_Sprite.Coords.x + (velocity.x > 0 ? 3 : 0);
+		// if (!lock)
+			// m_Position.x += velocity.x;
 	}
 
-	if (y != 0)
+	if (velocity.y != 0)
 	{
-		m_SpriteCoords.x = m_Sprite.Coords.x + (y > 0 ? 2 : 1);
-		if (!lock)
-			m_Position.y += y;
+		m_SpriteCoords.x = m_Sprite.Coords.x + (velocity.y > 0 ? 2 : 1);
+		// if (!lock)
+			// m_Position.y += velocity.y;
 	}
 
-	if (z != 0)
-	{
-		m_Position.z += z;
-	}
-
-	m_SpriteCoords.y = m_Sprite.Coords.y - step;
+	// if (velocity.z != 0)
+	// {
+	// 	m_Position.z += velocity.z;
+	// }
 
 	if (!lock)
+	{
+		m_SpriteCoords.y = m_Sprite.Coords.y - step;
 		m_SpriteCoords.z -= m_Sprite.Coords.z;
+	}
 
+	m_PhysicalBody->Position = m_Position;
 	m_Weapon->SetPosition(m_Position);
 
 	step -= 0.1f;
@@ -84,6 +101,7 @@ void Character::SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics)
 	if (phyzics == nullptr)
 	{
 		LOG(Error, "Runtime Error: Phyzics engine is not initialized for calculations!");
+		return;
 	}
 
 	m_Phyzics = phyzics;
@@ -92,7 +110,6 @@ void Character::SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics)
 
 void Character::OnUpdate(float dt)
 {
-	m_PhysicalBody->Position = m_Position;
 	m_Weapon->OnUpdate(dt);
 }
 
@@ -112,4 +129,11 @@ void Character::OnRender()
 	m_Weapon->OnRender();
 
 	m_Moving = false;
+}
+
+void Character::SetSprite(const Sprite& sprite)
+{
+	m_Sprite = sprite;
+	m_Size = { sprite.Size.x, sprite.Size.y };
+	m_SpriteCoords = sprite.Coords;
 }

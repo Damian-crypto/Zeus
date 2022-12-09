@@ -21,7 +21,9 @@ public:
 	bool IsDead = false;
 
 protected:
+	glm::vec2 m_Size{ 0.0f };
 	glm::vec3 m_Position{ 0.0f };
+	glm::vec3 m_Velocity{ 0.0f };
 	glm::vec3 m_LastPosition { 0.0f };
 	glm::vec3 m_SpriteCoords{ 0.0f };
 
@@ -41,19 +43,24 @@ public:
 	// But it adds the value you entered to the existing character location.
 	// e.g. player.xCoord += -1
 	// In the above example player moving towards left not it's position is -1
-	void Move(float x, float y, float z = 0.0f, bool lock = false);
+	void Move(glm::vec3 velocity = glm::vec3(0.0f), bool lock = false);
 	virtual void Attack(float direction) = 0;
 	void OnUpdate(float dt);
 	void OnRender();
 
+	void SetVelocity(const glm::vec3& velocity) { m_Velocity = velocity; }
 	void SetWeapon(WeaponType type);
+	void SetSprite(const Sprite& sprite);
+	void SetSize(const glm::vec2& size) { m_Size = size; }
 	void SetPosition(const glm::vec3 pos) { m_Position = pos; m_PhysicalBody->Position = pos; }
-	void SetSprite(const Sprite& sprite) { m_Sprite = sprite; m_SpriteCoords = sprite.Coords; }
 	void SetTextureManager(std::shared_ptr<zeus::TextureManager> texManager) { m_TexManager = texManager; }
 	void SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics);
 	void SetPhyzicalBody(std::shared_ptr<zeus::PhyzicalBody> body) { m_PhysicalBody = body; }
 
 	Sprite& GetSprite() { return m_Sprite; }
 	glm::vec3& GetPosition() { return m_Position; }
-	std::shared_ptr<zeus::PhyzicalBody> GetPhyzicalBody() { return m_PhysicalBody; }
+	glm::vec3& GetVelocity() { return m_Velocity; }
+	glm::vec2 GetSize() { return m_Size; }
+	std::shared_ptr<zeus::Phyzics> GetPhyzicsEngine() const { return m_Phyzics; }
+	std::shared_ptr<zeus::PhyzicalBody> GetPhyzicalBody() const { return m_PhysicalBody; }
 };

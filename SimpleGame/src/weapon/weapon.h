@@ -5,6 +5,7 @@
 #include "phyzicsall.h"
 
 #include <vector>
+#include <cstring>
 
 class Weapon
 {
@@ -28,16 +29,25 @@ class Gun : public Weapon
 protected:
 	struct Bullet
 	{
-		float Direction;
-		glm::vec3 Position;
-		std::shared_ptr<zeus::PhyzicalBody> PhysicalBody;
+		float Direction 	{ 0.0f };
+		float MaxDistance 	{ 100.0f };
+		glm::vec3 Position 	{ 0.0f, 0.0f, 0.0f };
+		glm::vec3 Origin 	{ 0.0f, 0.0f, 0.0f };
+		std::shared_ptr<zeus::PhyzicalBody> PhysicalBody = nullptr;
 	};
 
 	std::vector<Bullet> m_Bullets;
-	std::function<void(const std::shared_ptr<zeus::PhyzicalBody>)> CollisionFn = [&](const std::shared_ptr<zeus::PhyzicalBody> body) {
+	std::function<void(const std::shared_ptr<zeus::PhyzicalBody>, zeus::PhyzicalBody*)> CollisionFn = [&](const std::shared_ptr<zeus::PhyzicalBody> body, zeus::PhyzicalBody* me) {
 		const auto& pos = body->Position;
 		if ((pos.x < m_Position.x - 100 || pos.x > m_Position.x + 100))
-			QUICK_LOG(Trace, "Fired at: %f %f", pos.x, pos.y);
+		{
+			const char* data = (const char*)body->InternalData;
+			if (strcmp(data, "enemy") == 0)
+			{
+				body->IsDead = true;
+			}
+		}
+			// QUICK_LOG(Trace, "Fired at: %f %f", pos.x, pos.y);
 	};
 
 public:

@@ -1,11 +1,18 @@
 #include "body.h"
 
+#include <stdexcept>
+
 namespace zeus
 {
 	void PhyzicalBody::OnCollision(std::shared_ptr<PhyzicalBody> body)
 	{
+		if (body == nullptr)
+		{
+			throw std::runtime_error("Runtime Error: colliding with null body");
+		}
+
 		if (CollideFunction != nullptr)
-			CollideFunction(body);
+			CollideFunction(body, this);
 	}
 
 	bool PhyzicalBody::IsCollide(std::shared_ptr<PhyzicalBody> shape)
@@ -14,6 +21,13 @@ namespace zeus
 		{
 			case BodyShape::Quad:
 			{
+				std::vector<glm::vec2> corners = {
+					{ Position.x - HalfWidth, Position.y - HalfHeight },
+					{ Position.x + HalfWidth, Position.y - HalfHeight },
+					{ Position.x + HalfWidth, Position.y + HalfHeight },
+					{ Position.x - HalfWidth, Position.y + HalfHeight }
+				};
+
 				//                   | |
 				// shape.x - half <--|*|--> shape.x + half
 				//                   | |
@@ -23,13 +37,18 @@ namespace zeus
 				//                   | |
 				// Below conditions check whether "this body" is in the range of
 				// "shape's" body (above illustration only for x-axis; same for y-axis)
-
-				bool xCollision = shape->Position.x + shape->HalfWidth >= Position.x
-					&& shape->Position.x - shape->HalfWidth <= Position.x;
-				bool yCollision = shape->Position.y + shape->HalfHeight >= Position.y// - 10
-					&& shape->Position.y - shape->HalfHeight <= Position.y ;//+ 10;
-
-				return xCollision && yCollision;
+				
+				for (const glm::vec2& point : corners)
+				{
+					bool xCollision = shape->Position.x + shape->HalfWidth >= point.x && shape->Position.x - shape->HalfWidth <= point.x;
+					bool yCollision = shape->Position.y + shape->HalfHeight >= point.y && shape->Position.y - shape->HalfHeight <= point.y;
+				
+					if (xCollision && yCollision)
+					{
+						return true;
+					}
+				}
+				break;
 			}
 		}
 

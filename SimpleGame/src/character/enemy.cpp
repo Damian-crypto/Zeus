@@ -3,37 +3,63 @@
 
 #include <iostream>
 
+void Enemy::SetTarget(const std::shared_ptr<Character> target)
+{
+	m_Target = target;
+}
+
 HumanEnemy::HumanEnemy()
 {
 }
 
 void HumanEnemy::Attack(float direction)
 {
-	m_Weapon->Attack(direction);
+	if (GetPhyzicsEngine() == nullptr)
+	{
+		LOG(Error, "Runtime Error: Phyzics engine is not initialized!");
+		return;
+	}
+	if (m_Weapon == nullptr)
+	{
+		LOG(Error, "Runtime Error: Weapon is not selected but trying to shoot!");
+	}
+	else
+	{
+		m_Weapon->Attack(direction);
+	}
 }
 
-float factor = 1.0f;
 void HumanEnemy::OnUpdate(float dt)
 {
-	float velocity = 150.0f * dt;
-
-	Move(0, factor * velocity, 0);
+	m_Weapon->OnUpdate(dt);
 
 	if (Collided && CollideObject == "rock")
 	{
-		// auto pos = GetPosition();
-		// LOG(Trace, "Last good pos %f %f", m_LastPosition.x, m_LastPosition.y);
-		// LOG(Trace, "Collided at %f %f", pos.x, pos.y);
-		// pos.y -= 50;
-		// SetPosition(pos);
-		factor = -factor;
+		auto& velo = GetVelocity();
+		velo.y = -velo.y;
+		SetVelocity(velo);
 		SetPosition(m_LastPosition);
 		Collided = false;
 		CollideObject = "";
 	}
 	else
 	{
-		// TODO: cannot find "Last Good Position"
 		m_LastPosition = GetPosition();
+	}
+
+	// Move();
+
+	glm::vec3 targetPos = m_Target->GetPosition();
+	glm::vec2 targetSize = m_Target->GetSize();
+	zeus::Rectangle targetArea(targetPos.x - targetSize.x / 2, targetPos.y - targetSize.y / 2, targetSize.x, targetSize.y);
+	
+	glm::vec3 pos = GetPosition();
+	glm::vec2 size = GetSize();
+	zeus::Rectangle area(pos.x - size.x / 2, pos.y - size.y / 2, size.x, size.y);
+
+	if (area.IsIntersectingWith(targetArea, 100))
+	{
+		float dir = atan2(targetPos.y - pos.y, targetPos.x - pos.x);
+		Attack(dir);
 	}
 }

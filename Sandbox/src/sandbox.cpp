@@ -353,6 +353,7 @@ private:
 
 	bool m_Keys[65536] = { false };
 	bool m_CameraMode = false;
+	bool m_ShowFileDialog = false;
 	int m_GridCellSize = 64;
 	int m_LineWidth = 1;
 
@@ -374,10 +375,14 @@ public:
 		: m_Name(name)
 	{
 		// Initialize Menubar
-		// const auto& app = zeus::Application::GetInstance();
-		// const auto& ui = app->GetUI();
-		// ui->AddMenuItem({ "menu##File" });
-		// ui->AddMenuItem({ "menu-item##Open", []() -> bool { LOG(Trace, "Open File"); } });
+		const auto& app = zeus::Application::GetInstance();
+		const auto& ui = app->GetUI();
+		ui->AddMenuItem({ "menu$$File" });
+		ui->AddMenuItem({ "menu-item$$Open", [&]() -> bool {
+				m_ShowFileDialog = true;
+				return true;
+			}
+		});
 
 		m_Camera = std::make_shared<zeus::Camera>();
 		m_Camera->GetProperties().Position = defaultOrthoCamera.Position;
@@ -607,6 +612,7 @@ public:
 
 			const auto& tex = m_Framebuffer->GetAttachedTextures()[0];
 			ImGui::Image(reinterpret_cast<void*>(tex->GetTextureID()), ImVec2{ WIDTH, HEIGHT }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+			
 			ImGui::End();
 		}
 
@@ -789,6 +795,28 @@ public:
 
 	void RenderUI()
 	{
+		if (m_ShowFileDialog)
+		{
+			LOG(Trace, "open dialog");
+			ImGui::OpenPopup("Open File");
+			m_ShowFileDialog = false;
+		}
+
+		if (ImGui::BeginPopupModal("Open File", NULL))
+		{
+			if (ImGui::Button("Cancel"))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Open"))
+			{
+				ImGui::Text("Hello");
+			}
+
+			ImGui::EndPopup();
+		}
+
 #if 1
 		static bool p_open = false;
 		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysHorizontalScrollbar;
