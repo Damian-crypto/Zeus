@@ -83,6 +83,19 @@ public:
 		LoadLevel("assets/levels/level.data");
 	}
 
+	std::string GetLevelPath() const
+	{
+		return m_LevelPath;
+	}
+
+	std::string GetLevelName() const
+	{
+		size_t begin = m_LevelPath.find_last_of('/');
+		size_t end = m_LevelPath.find_last_of('.');
+
+		return m_LevelPath.substr(begin + 1, end - begin - 1);
+	}
+
 	zeus::QuadData quad;
 	void Draw() override
 	{
@@ -220,7 +233,9 @@ public:
 		// Escape blank line
 		file << '\n';
 
-		// Reading map
+		file << "levelmap:" << '\n';
+
+		// Saving map
 		int idx = 0;
 		for (int y = 0; y < m_LevelRows; y++)
 		{
@@ -558,9 +573,11 @@ public:
 
 		ImVec2 pos = ImGui::GetMousePos();
 		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysHorizontalScrollbar;
+		ImGui::SetNextWindowSize(ImVec2{ 100, 100 });
 		const auto& activeLevel = (SandboxLevel*)m_LevelManager.GetActiveLevel().get();
 		static bool p_open = false;
-		ImGui::Begin("Viewport", &p_open, flags);
+		const char* fileName = activeLevel->GetLevelName().c_str();
+		ImGui::Begin(fileName, &p_open, flags);
 		{
 			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
 			const auto& windowMax = ImGui::GetContentRegionAvail();
@@ -832,7 +849,7 @@ public:
 			}
 			int sentinel = contentRegion.x / int(tileSize.x + 14);
 
-			uint32_t x = 1, y = 1;
+			uint32_t x = 1, y = 1; // origin of x, y is bottom left corner of the sprite sheet
 			static int tilesCount = 6 * 3;
 			for (int i = 0; i < tilesCount; i++)
 			{
@@ -850,15 +867,14 @@ public:
 				}
 				ImGui::PopID();
 
-				if (x == 0 || (sentinel > 1 && x % sentinel != 0))
-				{
-					ImGui::SameLine();
-					x++;
-				}
-				else
-				{
+				if (x++ == 6) {
 					x = 1;
 					y++;
+				}
+
+				if (i == 0 || (sentinel > 1 && i % sentinel != 0))
+				{
+					ImGui::SameLine();
 				}
 			}
 

@@ -19,10 +19,9 @@ Character::Character()
 		}
 		if (strcmp((const char*)body->InternalData, "bullet") == 0)
 		{
-			me->IsDead = true;
-			QUICK_LOG(Trace, "hit by bullet");
+			// me->IsDead = true;
+			QUICK_LOG(Trace, "Player is dead by bullet!!!!");
 		}
-		// QUICK_LOG(Trace, "%s hit by %s at %f %f", (const char*)m_PhysicalBody->InternalData, (const char*)body->InternalData, pos.x, pos.y);
 	};
 }
 

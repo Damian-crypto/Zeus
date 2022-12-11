@@ -27,8 +27,7 @@ void Gun::OnUpdate(float dt)
 		if (bullet.Position.x > bullet.Origin.x + bullet.MaxDistance ||
 			bullet.Position.x < bullet.Origin.x - bullet.MaxDistance ||
 			bullet.Position.y > bullet.Origin.y + bullet.MaxDistance ||
-			bullet.Position.y < bullet.Origin.y - bullet.MaxDistance ||
-			bullet.PhysicalBody->IsDead
+			bullet.Position.y < bullet.Origin.y - bullet.MaxDistance
 			)
 		{
 			bullet.PhysicalBody->IsDead = true;
@@ -64,10 +63,13 @@ void Gun::OnRender()
 	static zeus::QuadData quad;
 	for (const auto& bullet : m_Bullets)
 	{
-		quad.SetPosition({ bullet.Position.x, bullet.Position.y, 0.1f });
-		quad.SetSize({ 20, 20, 0 });
-		const auto& tex = m_TexManager->GetSubTexture("bullet_sheet", 4, 6);
-		quad.SetSubTexture(tex);
-		zeus::Renderer::DrawTexturedQuad(quad);
+		if (!bullet.PhysicalBody->IsDead)
+		{
+			quad.SetPosition({ bullet.Position.x, bullet.Position.y, 0.1f });
+			quad.SetSize({ 20, 20, 0 });
+			const auto& tex = m_TexManager->GetSubTexture("bullet_sheet", 4, 6);
+			quad.SetSubTexture(tex);
+			zeus::Renderer::DrawTexturedQuad(quad);
+		}
 	}
 }

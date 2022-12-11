@@ -46,8 +46,8 @@ protected:
 			{
 				body->IsDead = true;
 			}
+			me->IsDead = true;
 		}
-			// QUICK_LOG(Trace, "Fired at: %f %f", pos.x, pos.y);
 	};
 
 public:
