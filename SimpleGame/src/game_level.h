@@ -2,6 +2,7 @@
 
 #include "zeus.h"
 #include "phyzicsall.h"
+#include "character/enemy_registry.h"
 
 enum class TileType
 {
@@ -36,6 +37,8 @@ protected:
 
 private:
 	std::shared_ptr<zeus::Phyzics> m_Phyzics;
+	std::shared_ptr<EnemyRegistry> m_EnemyRegistry;
+	std::vector<shared_ptr<Enemey>> m_Enemies;
 
 public:
 	void OnStart() override;
@@ -44,4 +47,5 @@ public:
 	void LoadLevel(const std::string& filepath);
 	void SetLevelSize(uint32_t width, uint32_t height);
 	void SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics);
+	void SetEnemyRegistry(std::shared_ptr<EnemyRegistry> enemyRegistry);
 };

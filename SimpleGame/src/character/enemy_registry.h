@@ -7,7 +7,8 @@
 enum class EnemyType
 {
 	Human,
-	Animal
+	Animal,
+	None
 };
 
 class EnemyRegistry

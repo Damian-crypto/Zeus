@@ -52,6 +52,11 @@ void BeginLevel::Draw()
 	}
 }
 
+void SetEnemyRegistry(std::shared_ptr<EnemyRegistry> enemyRegistry)
+{
+	m_EnemyRegistry = enemyRegistry;
+}
+
 void BeginLevel::LoadLevel(const std::string& filepath)
 {
 	m_LevelPath = filepath;
@@ -152,6 +157,42 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				k = lastPos;
 			}
 			// std::cout << '\n';
+		}
+
+		getline(file, line);
+		if (line.substr(5) == "enemy")
+		{
+			getline(file, line);
+			EnemyType type = EnemyType::None;
+			if (line.size() >= 4 && line.substr(4) == "type")
+			{
+				beginPos = line.find(':');
+				endPos = line.size();
+				switch (line.substr(beginPos + 1, endPos))
+				{
+					case "human":
+						type = EnemyType::Human;
+						break;
+					case "animal":
+						type = EnemyType::Animal;
+						break;
+				}
+			}
+
+			auto enemy = m_EnemyRegistry->CreateEnemy(type);
+			getline(file, line);
+			if (line.size() >= 3 && line.substr(3) == "pos")
+			{
+				beginPos = line.find('(');
+				size_t midPos = line.find(',');
+				endPos = line.size();
+
+				float x = stof(line.substr(beginPos + 1, midPos - beginPos - 1));
+				float y = stof(line.substr(midPos + 1, endPos - midPos - 1));
+				enemy->SetPosition({ x, y, 0.1f });
+
+				m_Enemies.push_back(enemy);
+			}
 		}
 	}
 	catch (std::exception e)
