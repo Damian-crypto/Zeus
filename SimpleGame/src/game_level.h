@@ -38,7 +38,7 @@ protected:
 private:
 	std::shared_ptr<zeus::Phyzics> m_Phyzics;
 	std::shared_ptr<EnemyRegistry> m_EnemyRegistry;
-	std::vector<shared_ptr<Enemey>> m_Enemies;
+	std::vector<std::shared_ptr<Enemy>> m_Enemies;
 
 public:
 	void OnStart() override;

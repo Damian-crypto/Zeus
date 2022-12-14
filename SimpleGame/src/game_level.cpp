@@ -52,7 +52,7 @@ void BeginLevel::Draw()
 	}
 }
 
-void SetEnemyRegistry(std::shared_ptr<EnemyRegistry> enemyRegistry)
+void BeginLevel::SetEnemyRegistry(std::shared_ptr<EnemyRegistry> enemyRegistry)
 {
 	m_EnemyRegistry = enemyRegistry;
 }
@@ -110,9 +110,15 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		// Escape blank line
 		std::getline(file, line);
 
+		// Escape levelmap: line
+		std::getline(file, line);
+
 		// Reading map
-		while (std::getline(file, line))
+		for (int row = 0; row <= m_LevelRows; row++)
 		{
+			std::getline(file, line);
+			// std::cout << "map line: " << line << "\n";
+
 			size_t lastPos = 0u;
 			for (size_t k = 0; k < line.size(); k++)
 			{
@@ -134,7 +140,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				int idx = stoi(line.substr(midPos3 + 1, endPos - midPos3 - 1));
 				// int posY = stoi(line.substr(midPos4 + 1, endPos - midPos3 - 1));
 
-				// std::cout << "(" << texX << ", " << texY << ", " << mode << ") ";
+				std::cout << "(" << texX << "," << texY << "," << mode << "," << idx << ") ";
 
 				Tile tile;
 				tile.TexCoords = { texX, texY };
@@ -156,32 +162,32 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				lastPos = endPos + 1;
 				k = lastPos;
 			}
-			// std::cout << '\n';
+			std::cout << '\n';
 		}
 
-		getline(file, line);
-		if (line.substr(5) == "enemy")
+		std::getline(file, line);
+		if (line.substr(0, 5) == "enemy")
 		{
-			getline(file, line);
+			std::getline(file, line);
 			EnemyType type = EnemyType::None;
-			if (line.size() >= 4 && line.substr(4) == "type")
+			if (line.size() >= 4 && line.substr(0, 4) == "type")
 			{
 				beginPos = line.find(':');
 				endPos = line.size();
-				switch (line.substr(beginPos + 1, endPos))
+				std::string typeStr = line.substr(beginPos + 1, endPos);
+				if (typeStr == "human")
 				{
-					case "human":
-						type = EnemyType::Human;
-						break;
-					case "animal":
-						type = EnemyType::Animal;
-						break;
+					type = EnemyType::Human;
+				}
+				else if (typeStr == "animal")
+				{
+					type = EnemyType::Animal;
 				}
 			}
 
 			auto enemy = m_EnemyRegistry->CreateEnemy(type);
 			getline(file, line);
-			if (line.size() >= 3 && line.substr(3) == "pos")
+			if (line.size() >= 3 && line.substr(0, 3) == "pos")
 			{
 				beginPos = line.find('(');
 				size_t midPos = line.find(',');
