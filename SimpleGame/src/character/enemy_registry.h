@@ -17,6 +17,7 @@ private:
 	std::shared_ptr<zeus::TextureManager> m_TexManager;
 	std::vector<std::shared_ptr<Enemy>> m_Enemies;
 	std::shared_ptr<zeus::Phyzics> m_Phyzics;
+	std::shared_ptr<Character> m_Target;
 
 public:
 	EnemyRegistry() = default;

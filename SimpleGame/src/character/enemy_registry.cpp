@@ -9,6 +9,16 @@ EnemyRegistry::EnemyRegistry(std::shared_ptr<zeus::TextureManager> texManager)
 
 std::shared_ptr<Enemy> EnemyRegistry::CreateEnemy(EnemyType type)
 {
+	if (m_TexManager == nullptr)
+	{
+		LOG(Error, "Runtime Error: Texture manager is not initialized for operation!");
+	}
+
+	if (m_Phyzics == nullptr)
+	{
+		LOG(Error, "Runtime Error: Phyzics engine is not initialized for calculations!");
+	}
+
 	std::shared_ptr<Enemy> enemy = nullptr;
 	switch (type)
 	{
@@ -19,14 +29,9 @@ std::shared_ptr<Enemy> EnemyRegistry::CreateEnemy(EnemyType type)
 			enemy->SetPosition({ 500.0f, 300.0f, 0.09f });
 			enemy->SetSprite({ { 24.0f, 13.0f, 2.0f }, { 32.0f, 32.0f, 0.0f }, "person_sheet" });
 			enemy->SetWeapon(WeaponType::Gun);
-			enemy->SetPhyzicsEngine(m_Phyzics);
 			m_Enemies.push_back(enemy);
 
-			if (m_Phyzics == nullptr)
-			{
-				LOG(Error, "Runtime Error: Phyzics engine is not initialized for calculations!");
-			}
-
+			enemy->SetPhyzicsEngine(m_Phyzics);
 			enemy->GetPhyzicalBody()->InternalData = (void*)"enemy";
 			enemy->GetPhyzicalBody()->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body, zeus::PhyzicalBody* me) {
 				std::shared_ptr<Enemy> ptr = m_Enemies.back();
@@ -58,6 +63,7 @@ void EnemyRegistry::OnUpdate(float dt)
 		auto& enemy = m_Enemies[i];
 		if (!enemy->IsDead)
 		{
+			enemy->SetTarget(m_Target);
 			enemy->GetPhyzicalBody()->Position = enemy->GetPosition();
 			enemy->OnUpdate(dt);
 		}
@@ -79,8 +85,5 @@ void EnemyRegistry::OnRender()
 
 void EnemyRegistry::SetTarget(std::shared_ptr<Character> target)
 {
-	for (auto& enemy : m_Enemies)
-	{
-		enemy->SetTarget(target);
-	}
+	m_Target = target;
 }

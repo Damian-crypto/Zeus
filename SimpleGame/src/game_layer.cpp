@@ -26,13 +26,10 @@ GameLayer::GameLayer(const char* name)
 	m_TexManager->PutSpritesheet({ "person_sheet", "assets/textures/spritesheets/tilemap_packed.png", 16, true });
 	m_TexManager->PutSpritesheet({ "building_sheet", "assets/textures/spritesheets/mytilemap.png", 16, true });
 	m_TexManager->PutSpritesheet({ "bullet_sheet", "assets/textures/spritesheets/explosion.png", 240, true });
-
+	
 	// Initializing Enemy registry
 	m_EnemyReg = std::make_shared<EnemyRegistry>(m_TexManager);
 	m_EnemyReg->SetPhyzicsEngine(m_Phyzics);
-	enemy = m_EnemyReg->CreateEnemy(EnemyType::Human);
-	enemy->SetPosition({ WIDTH / 2 - 150, HEIGHT / 2 - 50, 0.1f });
-	enemy->SetWeapon(WeaponType::Gun);
 
 	// Initializing Main player
 	m_Player = std::make_shared<Player>();
@@ -47,8 +44,14 @@ GameLayer::GameLayer(const char* name)
 	const auto& lvl1 = std::make_shared<BeginLevel>();
 	lvl1->SetLevelSize(WIDTH, HEIGHT);
 	lvl1->SetPhyzicsEngine(m_Phyzics);
+	lvl1->SetEnemyRegistry(m_EnemyReg);
+	lvl1->GetLevelResources().TexManager = m_TexManager;
 	m_LevelManager.AddLevel(m_CurrentLevel, lvl1);
-	m_LevelManager.GetLevel(m_CurrentLevel)->GetLevelResources().TexManager = m_TexManager;
+
+	// Create new enemy
+	enemy = m_EnemyReg->CreateEnemy(EnemyType::Human);
+	enemy->SetPosition({ WIDTH / 2 - 150, HEIGHT / 2 - 50, 0.1f });
+	enemy->SetWeapon(WeaponType::Gun);
 
 	// Initializing Renderer
 	zeus::Renderer::Init();

@@ -57,6 +57,33 @@ void BeginLevel::SetEnemyRegistry(std::shared_ptr<EnemyRegistry> enemyRegistry)
 	m_EnemyRegistry = enemyRegistry;
 }
 
+// String related utility functions for removing white spaces of a string(trailing/leading)
+static inline void left_trim(std::string& s)
+{
+	s.erase(s.begin(), std::find_if(
+			s.begin(),
+			s.end(),
+			[](unsigned char c) { return not std::isspace(c); }
+		)
+	);
+}
+
+static inline void right_trim(std::string& s)
+{
+	s.erase(std::find_if(
+			s.rbegin(),
+			s.rend(),
+			[](unsigned char c) { return not std::isspace(c); }
+		).base(),
+	s.end());
+}
+
+static inline void trim(std::string& s)
+{
+	left_trim(s);
+	right_trim(s);
+}
+
 void BeginLevel::LoadLevel(const std::string& filepath)
 {
 	m_LevelPath = filepath;
@@ -175,6 +202,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				beginPos = line.find(':');
 				endPos = line.size();
 				std::string typeStr = line.substr(beginPos + 1, endPos);
+				trim(typeStr);
 				if (typeStr == "human")
 				{
 					type = EnemyType::Human;
@@ -183,10 +211,19 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				{
 					type = EnemyType::Animal;
 				}
+				else
+				{
+					type = EnemyType::None;
+				}
+			}
+
+			if (m_EnemyRegistry == nullptr)
+			{
+				LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
 			}
 
 			auto enemy = m_EnemyRegistry->CreateEnemy(type);
-			getline(file, line);
+			std::getline(file, line);
 			if (line.size() >= 3 && line.substr(0, 3) == "pos")
 			{
 				beginPos = line.find('(');
@@ -198,6 +235,19 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				enemy->SetPosition({ x, y, 0.1f });
 
 				m_Enemies.push_back(enemy);
+			}
+
+			std::getline(file, line);
+			if (line.size() >= 6 && line.substr(0, 6) == "weapon")
+			{
+				beginPos = line.find(':');
+				endPos = line.size();
+				std::string weaponStr = line.substr(beginPos + 1, endPos);
+				trim(weaponStr);
+				if (weaponStr == "gun")
+				{
+					enemy->SetWeapon(WeaponType::Gun);
+				}
 			}
 		}
 	}
