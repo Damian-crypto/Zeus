@@ -104,6 +104,7 @@ namespace zeus
 
 		static void SetPolygonMode(bool enabled);
 		static void SetDepthTest(bool enabled);
+		static void SetStencilTest(bool enabled);
 		static void SetColorBlending(bool enabled);
 		static void SetBackgroundColor(const glm::vec4& color);
 		static void Refresh();

@@ -37,6 +37,9 @@
 [Bb]uild/
 .vscode/
 
+# CodeEditor files
+.subl*
+
 # CMake file
 CMakeLists.txt.user
 CMakeCache.txt

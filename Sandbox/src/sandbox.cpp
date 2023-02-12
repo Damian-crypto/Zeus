@@ -208,6 +208,33 @@ public:
 		return m_CellSize;
 	}
 
+	// String related utility functions for removing white spaces of a string(trailing/leading)
+	static inline void left_trim(std::string& s)
+	{
+		s.erase(s.begin(), std::find_if(
+				s.begin(),
+				s.end(),
+				[](unsigned char c) { return not std::isspace(c); }
+			)
+		);
+	}
+
+	static inline void right_trim(std::string& s)
+	{
+		s.erase(std::find_if(
+				s.rbegin(),
+				s.rend(),
+				[](unsigned char c) { return not std::isspace(c); }
+			).base(),
+		s.end());
+	}
+
+	static inline void trim(std::string& s)
+	{
+		left_trim(s);
+		right_trim(s);
+	}
+
 	void SaveLevel()
 	{
 		std::ofstream file(m_LevelPath, std::ios_base::out);
@@ -352,6 +379,36 @@ public:
 					k = lastPos;
 				}
 				// std::cout << '\n';
+			}
+
+			// Reading enemy position
+			auto enemy = m_EnemyRegistry->CreateEnemy(type);
+			std::getline(file, line);
+			if (line.size() >= 3 && line.substr(0, 3) == "pos")
+			{
+				beginPos = line.find('(');
+				size_t midPos = line.find(',');
+				endPos = line.size();
+
+				float x = stof(line.substr(beginPos + 1, midPos - beginPos - 1));
+				float y = stof(line.substr(midPos + 1, endPos - midPos - 1));
+				enemy->SetPosition({ x, y, 0.1f });
+
+				m_Enemies.push_back(enemy);
+			}
+			
+			// Reading enemy weapon
+			std::getline(file, line);
+			if (line.size() >= 6 && line.substr(0, 6) == "weapon")
+			{
+				beginPos = line.find(':');
+				endPos = line.size();
+				std::string weaponStr = line.substr(beginPos + 1, endPos);
+				trim(weaponStr);
+				if (weaponStr == "gun")
+				{
+					enemy->SetWeapon(WeaponType::Gun);
+				}
 			}
 		}
 		catch (std::exception e)
@@ -712,9 +769,8 @@ public:
 
 				// Testing behavior of widgets stacking their own regular popups over the modal.
 				static int item = 1;
-				static float color[4] = { 0.4f, 0.7f, 0.0f, 0.5f };
-				ImGui::Combo("Combo", &item, "aaaa\0bbbb\0cccc\0dddd\0eeee\0\0");
-				ImGui::ColorEdit4("color", color);
+				static int color[4] = { 1, 2, 3, 4 };
+				ImGui::Combo("Combo", &item, "Human Enemy 1\0Human Enemy 2\0Animal Enemy 1\0Animal Enemy 2\0Animal Enemy 3\0\0");
 
 				if (ImGui::Button("Add another modal.."))
 					ImGui::OpenPopup("Stacked 2");

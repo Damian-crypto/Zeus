@@ -3,6 +3,7 @@
 #include "util/logger.h"
 
 #include <vector>
+#include <cstdint>
 
 namespace zeus
 {

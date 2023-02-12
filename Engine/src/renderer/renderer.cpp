@@ -317,6 +317,16 @@ namespace zeus
 		s_QuadRenderCommand->SetState(s_RenderData.RendererState);
 	}
 
+	void Renderer::SetStencilTest(bool enabled)
+	{
+		if (enabled)
+			s_RenderData.RendererState |= StencilTest;
+		else
+			s_RenderData.RendererState &= ~StencilTest;
+
+		s_QuadRenderCommand->SetState(s_RenderData.RendererState);
+	}
+
 	void Renderer::SetColorBlending(bool enabled)
 	{
 		if (enabled)

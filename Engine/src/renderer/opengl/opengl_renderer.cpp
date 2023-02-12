@@ -115,6 +115,18 @@ namespace zeus
 
 	void OpenGLRenderer::SetState(uint32_t flag)
 	{
+		if (flag & StencilTest)
+		{
+			glEnable(GL_STENCIL_TEST);
+			glStencilFunc(GL_EQUAL, 1, 0xFF);
+			m_Buffers |= GL_STENCIL_BUFFER_BIT;
+		}
+		else
+		{
+			glDisable(GL_STENCIL_TEST);
+			m_Buffers &= ~GL_STENCIL_BUFFER_BIT;
+		}
+
 		if (flag & PolygonMode)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		else

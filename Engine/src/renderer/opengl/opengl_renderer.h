@@ -2,6 +2,8 @@
 
 #include "renderer/render_command.h"
 
+#include <cstdint>
+
 namespace zeus
 {
 	class OpenGLRenderer : public RenderCommand

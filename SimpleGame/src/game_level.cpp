@@ -192,9 +192,11 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 			std::cout << '\n';
 		}
 
+		// Reading enemy
 		std::getline(file, line);
 		if (line.substr(0, 5) == "enemy")
 		{
+			// Reading enemy type
 			std::getline(file, line);
 			EnemyType type = EnemyType::None;
 			if (line.size() >= 4 && line.substr(0, 4) == "type")
@@ -222,6 +224,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 				LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
 			}
 
+			// Reading enemy position
 			auto enemy = m_EnemyRegistry->CreateEnemy(type);
 			std::getline(file, line);
 			if (line.size() >= 3 && line.substr(0, 3) == "pos")
@@ -236,7 +239,8 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 
 				m_Enemies.push_back(enemy);
 			}
-
+			
+			// Reading enemy weapon
 			std::getline(file, line);
 			if (line.size() >= 6 && line.substr(0, 6) == "weapon")
 			{
