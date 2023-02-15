@@ -10,9 +10,12 @@
 
 namespace zeus
 {
+    bool ImGUI::m_Initialized = false;
+
 	void ImGUI::Init(bool gameUI)
 	{
         m_GameUI = gameUI;
+        m_Initialized = true;
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -242,8 +245,15 @@ namespace zeus
 
     bool ImGUI::IsBlocking()
     {
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+        if (m_Initialized)
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+            {
+                return true;
+            }
+        }
+        else
         {
             return true;
         }

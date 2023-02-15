@@ -38,7 +38,7 @@
 .vscode/
 
 # CodeEditor files
-.subl*
+*.sublime*
 
 # CMake file
 CMakeLists.txt.user

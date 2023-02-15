@@ -48,13 +48,13 @@ namespace zeus
 		m_Window->VSyncEnable(true);
 		m_ImGui->Init(m_Properties.GameUI);
 
-		// MenuItem fileMenu;
-		// fileMenu.ItemName = "menu$$File";
-		// MenuItem openItem;
-		// openItem.ItemName = "menu-item$$Open";
-		// openItem.Action = []() -> bool { LOG_ENGINE(Trace, "Open File"); };
-		// m_ImGui->AddMenuItem(fileMenu);
-		// m_ImGui->AddMenuItem(openItem);
+		MenuItem fileMenu;
+		fileMenu.ItemName = "menu$$File";
+		MenuItem openItem;
+		openItem.ItemName = "menu-item$$Open";
+		openItem.Action = []() -> bool { LOG_ENGINE(Trace, "Open File"); };
+		m_ImGui->AddMenuItem(fileMenu);
+		m_ImGui->AddMenuItem(openItem);
 	}
 
 	void Application::Run()
@@ -70,7 +70,7 @@ namespace zeus
 			m_DeltaTime = (currentTime - lastTime);
 			lastTime = currentTime;
 
-			m_Window->SetWindowTitle(m_Properties.Title + "|" + std::to_string(int(1.0f / m_DeltaTime)) + " FPS");
+			// m_Window->SetWindowTitle(m_Properties.Title + "|" + std::to_string(int(1.0f / m_DeltaTime)) + " FPS");
 			m_Window->ProcessEvents();
 
 			m_ImGui->Begin();

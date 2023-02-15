@@ -20,6 +20,7 @@ namespace zeus
 		GLFWwindow* m_NativeWindow;
 		std::vector<MenuItem> m_MenuItems;
 		bool m_GameUI = true;
+		static bool m_Initialized;
 
 	public:
 		void Init(bool gameUI);

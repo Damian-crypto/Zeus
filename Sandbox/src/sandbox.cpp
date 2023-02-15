@@ -382,34 +382,34 @@ public:
 			}
 
 			// Reading enemy position
-			auto enemy = m_EnemyRegistry->CreateEnemy(type);
-			std::getline(file, line);
-			if (line.size() >= 3 && line.substr(0, 3) == "pos")
-			{
-				beginPos = line.find('(');
-				size_t midPos = line.find(',');
-				endPos = line.size();
+			// auto enemy = m_EnemyRegistry->CreateEnemy(type);
+			// std::getline(file, line);
+			// if (line.size() >= 3 && line.substr(0, 3) == "pos")
+			// {
+			// 	beginPos = line.find('(');
+			// 	size_t midPos = line.find(',');
+			// 	endPos = line.size();
 
-				float x = stof(line.substr(beginPos + 1, midPos - beginPos - 1));
-				float y = stof(line.substr(midPos + 1, endPos - midPos - 1));
-				enemy->SetPosition({ x, y, 0.1f });
+			// 	float x = stof(line.substr(beginPos + 1, midPos - beginPos - 1));
+			// 	float y = stof(line.substr(midPos + 1, endPos - midPos - 1));
+			// 	enemy->SetPosition({ x, y, 0.1f });
 
-				m_Enemies.push_back(enemy);
-			}
+			// 	m_Enemies.push_back(enemy);
+			// }
 			
 			// Reading enemy weapon
-			std::getline(file, line);
-			if (line.size() >= 6 && line.substr(0, 6) == "weapon")
-			{
-				beginPos = line.find(':');
-				endPos = line.size();
-				std::string weaponStr = line.substr(beginPos + 1, endPos);
-				trim(weaponStr);
-				if (weaponStr == "gun")
-				{
-					enemy->SetWeapon(WeaponType::Gun);
-				}
-			}
+			// std::getline(file, line);
+			// if (line.size() >= 6 && line.substr(0, 6) == "weapon")
+			// {
+			// 	beginPos = line.find(':');
+			// 	endPos = line.size();
+			// 	std::string weaponStr = line.substr(beginPos + 1, endPos);
+			// 	trim(weaponStr);
+			// 	if (weaponStr == "gun")
+			// 	{
+			// 		enemy->SetWeapon(WeaponType::Gun);
+			// 	}
+			// }
 		}
 		catch (std::exception e)
 		{

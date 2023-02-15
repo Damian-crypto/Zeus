@@ -51,6 +51,7 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}
     src
     dependency/glfw/include
+    dependency/zerializer/include
     vendor/glm/include
     vendor/glad/include
     vendor/stb_image/include
