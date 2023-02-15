@@ -7,6 +7,8 @@ namespace zeus
 	class OpenGLTexture : public Texture
 	{
 	private:
+		// m_IsStorage is true when this class used as a container
+		// Otherwise this is used as a real texture(with image)
 		bool m_IsStorage = false;
 
 	public:

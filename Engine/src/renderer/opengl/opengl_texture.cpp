@@ -22,7 +22,7 @@ namespace zeus
 
 	OpenGLTexture::~OpenGLTexture()
 	{
-		glDeleteTextures(1, &m_TextureID);
+		// glDeleteTextures(1, &m_TextureID);
 	}
 
 	void OpenGLTexture::Bind(uint32_t slot)
@@ -80,7 +80,7 @@ namespace zeus
 				break;
 			}
 
-			uint32_t mipLevel = 0; // 0 - largest, 1 - half of the largest
+			uint32_t mipLevel = 0; // 0 - largest, 1 - half of the largest, 2 - half of half
 			if (data != nullptr)
 			{
 				glTexImage2D(GL_TEXTURE_2D, mipLevel, m_InternalFormat, m_Width, m_Height, 0, m_PixelFormat, GL_UNSIGNED_BYTE, data);
