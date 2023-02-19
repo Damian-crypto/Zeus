@@ -4,6 +4,8 @@
 #include "phyzicsall.h"
 #include "character/enemy_registry.h"
 
+#include <zerializer/zerializer.hpp>
+
 enum class TileType
 {
 	Water = 0,
@@ -37,6 +39,7 @@ protected:
 
 private:
 	std::shared_ptr<zeus::Phyzics> m_Phyzics;
+	std::shared_ptr<zeus::Zerializer> m_Serializer;
 	std::shared_ptr<EnemyRegistry> m_EnemyRegistry;
 	std::vector<std::shared_ptr<Enemy>> m_Enemies;
 

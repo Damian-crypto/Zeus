@@ -21,6 +21,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
     ${MYPROJECT_DIR}/Phyzics/src/include
     ${MYPROJECT_DIR}/Engine/src/include
+    ${MYPROJECT_DIR}/Engine/dependencies/zerializer/include
     src
 )
 
@@ -28,6 +29,7 @@ target_link_directories(${PROJECT_NAME}
     PUBLIC
     ${MYPROJECT_DIR}/Engine
     ${MYPROJECT_DIR}/Phyzics
+    ${MYPROJECT_DIR}/Engine/dependencies/zerializer
 )
 
-target_link_libraries(${PROJECT_NAME} Engine Phyzics)
+target_link_libraries(${PROJECT_NAME} Engine Phyzics zerializer)

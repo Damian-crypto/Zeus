@@ -8,6 +8,7 @@ glm::ivec2 platformPos{ -230, -96 };
 
 void BeginLevel::OnStart()
 {
+	m_Serializer = std::make_shared<zeus::Zerializer>();
 	LoadLevel("assets/levels/level1.data");
 }
 
@@ -88,176 +89,111 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 {
 	m_LevelPath = filepath;
 
-	std::ifstream file(m_LevelPath);
-
-	if (!file.is_open())
-	{
-		LOG(Error, "Level file couldn't be found!");
-		return;
-	}
-
-	long int begin = file.tellg();
-	file.seekg(0, std::ios::end);
-	long int filesize = file.tellg();
-	file.seekg(std::ios::beg);
-	if (filesize <= 0)
-	{
-		LOG(Warn, "LevelMap is empty -> %s", m_LevelPath.c_str());
-		return;
-	}
-
+	zeus::SerialInfo info;
+	info.SerializationType = zeus::SerialType::PROPERTIES;
 	try
 	{
-		std::string line;
+		m_Serializer->StartDeserialize(filepath, info);
+	}
+	catch (std::runtime_error& e)
+	{
+		LOG(Error, e.what());
+		return;
+	}
 
-		// Reading columns count
-		getline(file, line);
-		size_t beginPos = line.find(':');
-		size_t endPos = line.size();
-		m_LevelCols = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+	m_LevelCols = m_Serializer->DeserializeInt("cols");
+	m_LevelRows = m_Serializer->DeserializeInt("rows");
+	m_CellSize = m_Serializer->DeserializeInt("cellsize");
+	m_CellGap = m_Serializer->DeserializeDbl("cellgap");
+	
+    const std::function<std::vector<int>(const std::string&)> sToVec = [](const std::string& s) {
+        std::vector<int> res;
+        std::stringstream ss(s);
+        std::string token;
+        size_t pos;
+        while (ss >> token)
+        {
+            pos = token.find(",");
+            if (pos != std::string::npos)
+                token.erase(pos, 1);
+            // std::cout << "token: " << token << std::endl;
+            res.push_back(std::stoi(token));
+        }
 
-		// Reading rows count
-		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
-		m_LevelRows = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
+        return res;
+    };
+	std::vector<std::vector<std::vector<int>>> levelmap = m_Serializer->DeserializeVec2<std::vector<int>>("levelmap", sToVec);
 
-		// Reading cell size
-		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
-		m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-		// Reading cell gap
-		getline(file, line);
-		beginPos = line.find(':');
-		endPos = line.size();
-		m_CellGap = std::stof(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-		// Escape blank line
-		std::getline(file, line);
-
-		// Escape levelmap: line
-		std::getline(file, line);
-
-		// Reading map
-		for (int row = 0; row <= m_LevelRows; row++)
+	// Reading map
+	for (int col = 0; col < m_LevelCols; col++)
+	{
+		for (int row = 0; row < m_LevelRows; row++)
 		{
-			std::getline(file, line);
-			// std::cout << "map line: " << line << "\n";
+			int texX = levelmap[row][col][0];
+			int texY = levelmap[row][col][1];
+			int mode = levelmap[row][col][2];
+			int indx = levelmap[row][col][3];
 
-			size_t lastPos = 0u;
-			for (size_t k = 0; k < line.size(); k++)
-			{
-				if (lastPos + 14 > line.size() || k + 14 > line.size())
-				{
-					break;
-				}
-
-				beginPos = line.find('(', lastPos);
-				size_t midPos1 = line.find(',', beginPos);
-				size_t midPos2 = line.find(',', midPos1 + 1);
-				size_t midPos3 = line.find(',', midPos2 + 1);
-				// size_t midPos4 = line.find(',', midPos3 + 1);
-				endPos = line.find(')', beginPos + 1);
-
-				int texX = stoi(line.substr(beginPos + 1, midPos1 - beginPos - 1));
-				int texY = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
-				int mode = stoi(line.substr(midPos2 + 1, midPos3 - midPos2 - 1));
-				int idx = stoi(line.substr(midPos3 + 1, endPos - midPos3 - 1));
-				// int posY = stoi(line.substr(midPos4 + 1, endPos - midPos3 - 1));
-
-				std::cout << "(" << texX << "," << texY << "," << mode << "," << idx << ") ";
-
-				Tile tile;
-				tile.TexCoords = { texX, texY };
-				tile.Type = (TileType)mode;
-				// tile.Position = { posX, posY, 0 };
-				tile.idx = idx;
-				tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
-				tile.PhysicalBody->SetWidth(m_CellSize);
-				tile.PhysicalBody->SetHeight(m_CellSize);
-				if (mode == 1) {
-					tile.PhysicalBody->InternalData = (void*)"rock";
-					m_Phyzics->AddBody(tile.PhysicalBody);
-				} else {
-					tile.PhysicalBody->InternalData = (void*)"none";
-				}
-
-				m_Map.emplace_back(tile);
-
-				lastPos = endPos + 1;
-				k = lastPos;
-			}
-			std::cout << '\n';
-		}
-
-		// Reading enemy
-		std::getline(file, line);
-		if (line.substr(0, 5) == "enemy")
-		{
-			// Reading enemy type
-			std::getline(file, line);
-			EnemyType type = EnemyType::None;
-			if (line.size() >= 4 && line.substr(0, 4) == "type")
-			{
-				beginPos = line.find(':');
-				endPos = line.size();
-				std::string typeStr = line.substr(beginPos + 1, endPos);
-				trim(typeStr);
-				if (typeStr == "human")
-				{
-					type = EnemyType::Human;
-				}
-				else if (typeStr == "animal")
-				{
-					type = EnemyType::Animal;
-				}
-				else
-				{
-					type = EnemyType::None;
-				}
+			Tile tile;
+			tile.TexCoords = { texX, texY };
+			tile.Type = (TileType)mode;
+			// tile.Position = { posX, posY, 0 };
+			tile.idx = indx;
+			tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
+			tile.PhysicalBody->SetWidth(m_CellSize);
+			tile.PhysicalBody->SetHeight(m_CellSize);
+			if (mode == 1) {
+				tile.PhysicalBody->InternalData = (void*)"rock";
+				m_Phyzics->AddBody(tile.PhysicalBody);
+			} else {
+				tile.PhysicalBody->InternalData = (void*)"none";
 			}
 
-			if (m_EnemyRegistry == nullptr)
-			{
-				LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
-			}
-
-			// Reading enemy position
-			auto enemy = m_EnemyRegistry->CreateEnemy(type);
-			std::getline(file, line);
-			if (line.size() >= 3 && line.substr(0, 3) == "pos")
-			{
-				beginPos = line.find('(');
-				size_t midPos = line.find(',');
-				endPos = line.size();
-
-				float x = stof(line.substr(beginPos + 1, midPos - beginPos - 1));
-				float y = stof(line.substr(midPos + 1, endPos - midPos - 1));
-				enemy->SetPosition({ x, y, 0.1f });
-
-				m_Enemies.push_back(enemy);
-			}
-			
-			// Reading enemy weapon
-			std::getline(file, line);
-			if (line.size() >= 6 && line.substr(0, 6) == "weapon")
-			{
-				beginPos = line.find(':');
-				endPos = line.size();
-				std::string weaponStr = line.substr(beginPos + 1, endPos);
-				trim(weaponStr);
-				if (weaponStr == "gun")
-				{
-					enemy->SetWeapon(WeaponType::Gun);
-				}
-			}
+			m_Map.emplace_back(tile);
+			// std::cout << '\n';
 		}
 	}
-	catch (std::exception e)
+
+	// Reading enemy
+	if (m_Serializer->ReadHeader("enemy1"))
 	{
-		LOG(Error, "Runtime Error: when loading the level -> %s", e.what());
+		std::string enemyType = m_Serializer->DeserializeStr("type");
+		EnemyType type = EnemyType::None;
+		if (enemyType == "human")
+		{
+			type = EnemyType::Human;
+		}
+		else if (enemyType == "animal")
+		{
+			type = EnemyType::Animal;
+		}
+		else
+		{
+			type = EnemyType::None;
+		}
+
+		if (m_EnemyRegistry == nullptr)
+		{
+			LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
+		}
+
+		// Reading enemy position
+		auto enemy = m_EnemyRegistry->CreateEnemy(type);
+
+		const std::function<int(const std::string&)> sToInt = [](const std::string& s) {
+			return std::stoi(s);
+		};
+		std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
+		enemy->SetPosition({ pos[0], pos[1], 0.1f });
+		m_Enemies.push_back(enemy);
+		
+		// Reading enemy weapon
+		std::string weaponName = m_Serializer->DeserializeStr("weapon");
+		if (weaponName == "gun")
+		{
+			enemy->SetWeapon(WeaponType::Gun);
+		}
+		m_Serializer->EndHeader();
 	}
 }
 

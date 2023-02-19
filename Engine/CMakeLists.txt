@@ -45,6 +45,7 @@ add_library(${PROJECT_NAME}
 )
 
 add_subdirectory(dependency/glfw)
+add_subdirectory(dependency/zerializer)
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
