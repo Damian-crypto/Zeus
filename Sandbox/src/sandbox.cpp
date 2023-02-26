@@ -1,5 +1,6 @@
 #include "zeus.h"
 #include "phyzicsall.h"
+#include "zerializer/zerializer.hpp"
 
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
@@ -7,7 +8,7 @@
 #include <random>
 #include <iostream>
 #include <random>
-#include <exception>
+#include <stdexcept>
 #include <fstream>
 
 static constexpr int WIDTH	= 1280;
@@ -76,10 +77,12 @@ private:
 	float m_CellGap = 2.0f;
 
 	std::vector<Tile> m_Map;
+	std::shared_ptr<zeus::Zerializer> m_Serializer;
 
 public:
 	void OnStart() override
 	{
+		m_Serializer = std::make_shared<zeus::Zerializer>();
 		LoadLevel("assets/levels/level.data");
 	}
 
@@ -105,9 +108,9 @@ public:
 		static float topBoundary	= HEIGHT - m_CellSize;
 		static float bottomBoundary = 0.0f;
 
-		for (int y = 0; y < m_LevelRows; y++)
+		for (uint32_t y = 0; y < m_LevelRows; y++)
 		{
-			for (int x = 0; x < m_LevelCols; x++)
+			for (uint32_t x = 0; x < m_LevelCols; x++)
 			{
 				int idx = x + y * m_LevelCols;
 				float xx = x * gap - spritePos.x + 32.0f;
@@ -116,7 +119,7 @@ public:
 				if (xx < leftBoundary || xx > rightBoundary || yy < bottomBoundary || yy > topBoundary)
 					continue;
 
-				if (idx < m_Map.size())
+				if (idx < (int)m_Map.size())
 				{
 					quad.SetPosition({ xx, yy, 0.0f });
 					quad.SetSize({ m_CellSize, m_CellSize, 0.0f });
@@ -237,184 +240,131 @@ public:
 
 	void SaveLevel()
 	{
-		std::ofstream file(m_LevelPath, std::ios_base::out);
-
-		std::string line;
-
-		// Writing columns count
-		line = "cols: " + std::to_string(m_LevelCols);
-		file << line << '\n';
-
-		// Reading rows count
-		line = "rows: " + std::to_string(m_LevelRows);
-		file << line << '\n';
-
-		// Reading cell size
-		line = "cellsize: " + std::to_string(m_CellSize);
-		file << line << '\n';
-
-		// Reading cell gap
-		line = "cellgap: " + std::to_string(m_CellGap);
-		file << line << '\n';
-
-		// Escape blank line
-		file << '\n';
-
-		file << "levelmap:" << '\n';
-
-		// Saving map
-		int idx = 0;
-		for (int y = 0; y < m_LevelRows; y++)
+		zeus::SerialInfo info;
+		info.SerializationType = zeus::SerialType::PROPERTIES;
+		try
 		{
-			for (int x = 0; x < m_LevelCols; x++)
-			{
-				idx = x + y * m_LevelCols;
-				if (idx < m_Map.size())
-				{
-					file << "(" << m_Map[idx].TexCoords.x << ", ";
-					file << m_Map[idx].TexCoords.y << ", ";
-					file << (int)m_Map[idx].Type << ", ";
-					file << m_Map[idx].idx << ") ";
-				}
-			}
-			file << '\n';
+			m_Serializer->StartSerialize(m_LevelPath, info);
 		}
-		file << '\n';
+		catch (std::runtime_error& e)
+		{
+			LOG(Error, e.what());
+			return;
+		}
+
+	    const std::function<std::string(const Tile&)> ivToString = [](const Tile& tile) {
+			std::stringstream ss;
+			ss << "(" << tile.TexCoords.x << ", ";
+			ss << tile.TexCoords.y << ", ";
+			ss << (int)tile.Type << ", ";
+			ss << tile.idx << ") ";
+			return ss.str();
+	    };
+
+	    m_Serializer->Serialize("#", m_LevelPath);
+		m_Serializer->Serialize("cols", (int)m_LevelCols);
+		m_Serializer->Serialize("rows", (int)m_LevelRows);
+		m_Serializer->Serialize("cellsize", (int)m_CellSize);
+		m_Serializer->Serialize("cellgap", (double)m_CellGap);
+		m_Serializer->Serialize("levelmap", m_Map, ivToString);
+		m_Serializer->Flush();
 	}
 
 	void LoadLevel(const std::string& filepath)
 	{
 		m_LevelPath = filepath;
 
-		std::ifstream file(m_LevelPath);
-
-		if (!file.is_open())
-		{
-			LOG(Info, "Level is not loaded -> level file not found!");
-			return;
-		}
-
-		long int begin = file.tellg();
-		file.seekg(0, std::ios::end);
-		long int filesize = file.tellg();
-		file.seekg(std::ios::beg);
-		if (filesize <= 0)
-		{
-			LOG(Warn, "LevelMap is empty -> %s", m_LevelPath.c_str());
-			return;
-		}
-
+		zeus::SerialInfo info;
+		info.SerializationType = zeus::SerialType::PROPERTIES;
 		try
 		{
-			std::string line;
-
-			// Reading columns count
-			getline(file, line);
-			size_t beginPos = line.find(':');
-			size_t endPos = line.size();
-			m_LevelCols = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-			// Reading rows count
-			getline(file, line);
-			beginPos = line.find(':');
-			endPos = line.size();
-			m_LevelRows = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-			// Reading cell size
-			getline(file, line);
-			beginPos = line.find(':');
-			endPos = line.size();
-			m_CellSize = std::stoi(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-			// Reading cell gap
-			getline(file, line);
-			beginPos = line.find(':');
-			endPos = line.size();
-			m_CellGap = std::stof(line.substr(beginPos + 1, beginPos - endPos - 1));
-
-			// Escape blank line
-			std::getline(file, line);
-
-			// Escape map header
-			std::getline(file, line);
-
-			// Reading map
-			while (std::getline(file, line))
-			{
-				size_t lastPos = 0u;
-				for (size_t k = 0; k < line.size(); k++)
-				{
-					if (lastPos + 14 > line.size() || k + 14 > line.size())
-					{
-						break;
-					}
-
-					beginPos = line.find('(', lastPos);
-					size_t midPos1 = line.find(',', beginPos);
-					size_t midPos2 = line.find(',', midPos1 + 1);
-					size_t midPos3 = line.find(',', midPos2 + 1);
-					// size_t midPos4 = line.find(',', midPos3 + 1);
-					endPos = line.find(')', beginPos + 1);
-
-					int texX = stoi(line.substr(beginPos + 1, midPos1 - beginPos - 1));
-					int texY = stoi(line.substr(midPos1 + 1, midPos2 - midPos1 - 1));
-					int mode = stoi(line.substr(midPos2 + 1, midPos3 - midPos2 - 1));
-					int idx = stoi(line.substr(midPos3 + 1, endPos - midPos3 - 1));
-					// int posY = stoi(line.substr(midPos4 + 1, endPos - midPos3 - 1));
-
-					// std::cout << "(" << texX << ", " << texY << ", " << mode << ") ";
-
-					Tile tile;
-					tile.TexCoords = { texX, texY };
-					if (mode > (int)TileType::None || mode < 0)
-						tile.Type = TileType::None;
-					else
-						tile.Type = (TileType)mode;
-					// tile.Position = { posX, posY, 0 };
-					tile.idx = idx;
-
-					m_Map.emplace_back(tile);
-
-					lastPos = endPos + 1;
-					k = lastPos;
-				}
-				// std::cout << '\n';
-			}
-
-			// Reading enemy position
-			// auto enemy = m_EnemyRegistry->CreateEnemy(type);
-			// std::getline(file, line);
-			// if (line.size() >= 3 && line.substr(0, 3) == "pos")
-			// {
-			// 	beginPos = line.find('(');
-			// 	size_t midPos = line.find(',');
-			// 	endPos = line.size();
-
-			// 	float x = stof(line.substr(beginPos + 1, midPos - beginPos - 1));
-			// 	float y = stof(line.substr(midPos + 1, endPos - midPos - 1));
-			// 	enemy->SetPosition({ x, y, 0.1f });
-
-			// 	m_Enemies.push_back(enemy);
-			// }
-			
-			// Reading enemy weapon
-			// std::getline(file, line);
-			// if (line.size() >= 6 && line.substr(0, 6) == "weapon")
-			// {
-			// 	beginPos = line.find(':');
-			// 	endPos = line.size();
-			// 	std::string weaponStr = line.substr(beginPos + 1, endPos);
-			// 	trim(weaponStr);
-			// 	if (weaponStr == "gun")
-			// 	{
-			// 		enemy->SetWeapon(WeaponType::Gun);
-			// 	}
-			// }
+			m_Serializer->StartDeserialize(filepath, info);
 		}
-		catch (std::exception e)
+		catch (std::runtime_error& e)
 		{
-			LOG(Error, "Runtime Error: when loading the level -> %s", e.what());
+			LOG(Error, e.what());
+			return;
 		}
+
+		m_LevelCols = m_Serializer->DeserializeInt("cols");
+		m_LevelRows = m_Serializer->DeserializeInt("rows");
+		m_CellSize = m_Serializer->DeserializeInt("cellsize");
+		m_CellGap = m_Serializer->DeserializeDbl("cellgap");
+		
+	    const std::function<Tile(const std::string&)> sToTile = [](const std::string& s) {
+	        LOG(Info, "converting...");
+
+	        std::vector<int> res;
+	        std::stringstream ss(s);
+	        std::string token;
+	        size_t pos;
+	        while (ss >> token)
+	        {
+	            pos = token.find(",");
+	            if (pos != std::string::npos)
+	                token.erase(pos, 1);
+	            // std::cout << "token: " << token << std::endl;
+	            res.push_back(std::stoi(token));
+	        }
+
+	        Tile tile;
+	        tile.TexCoords = { res[0], res[1] };
+	        tile.Type = (TileType)res[2];
+	        tile.idx = res[3];
+
+	        return tile;
+	    };
+		std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", sToTile);
+
+		std::cout << "DEBUG==> " << levelmap.size() << "\n";
+
+		// Reading map
+		for (const auto& tile : levelmap)
+		{
+			m_Map.push_back(tile);
+		}
+
+		// Reading enemy
+		// if (m_Serializer->ReadHeader("enemy1"))
+		// {
+		// 	std::string enemyType = m_Serializer->DeserializeStr("type");
+		// 	EnemyType type = EnemyType::None;
+		// 	if (enemyType == "human")
+		// 	{
+		// 		type = EnemyType::Human;
+		// 	}
+		// 	else if (enemyType == "animal")
+		// 	{
+		// 		type = EnemyType::Animal;
+		// 	}
+		// 	else
+		// 	{
+		// 		type = EnemyType::None;
+		// 	}
+
+		// 	if (m_EnemyRegistry == nullptr)
+		// 	{
+		// 		LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
+		// 	}
+
+		// 	// Reading enemy position
+		// 	auto enemy = m_EnemyRegistry->CreateEnemy(type);
+
+		// 	const std::function<int(const std::string&)> sToInt = [](const std::string& s) {
+		// 		return std::stoi(s);
+		// 	};
+		// 	std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
+		// 	enemy->SetPosition({ pos[0], pos[1], 0.1f });
+		// 	m_Enemies.push_back(enemy);
+			
+		// 	// Reading enemy weapon
+		// 	std::string weaponName = m_Serializer->DeserializeStr("weapon");
+		// 	if (weaponName == "gun")
+		// 	{
+		// 		enemy->SetWeapon(WeaponType::Gun);
+		// 	}
+		// 	m_Serializer->EndHeader();
+		// }
 	}
 };
 
@@ -637,7 +587,7 @@ public:
 		ImGui::Begin(fileName, &p_open, flags);
 		{
 			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
-			const auto& windowMax = ImGui::GetContentRegionAvail();
+			// const auto& windowMax = ImGui::GetContentRegionAvail();
 			const auto& [sX, sY] = ImGui::GetWindowPos();
 			m_CursorPos.x = pos.x - (sX + windowOffset.x);
 			m_CursorPos.y = pos.y - (sY + windowOffset.y);
@@ -676,7 +626,7 @@ public:
 					}
 #endif
 
-					if (id < levelMap.size())
+					if (id < (int)levelMap.size())
 					{
 						levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
 					}
@@ -695,7 +645,7 @@ public:
 			int id = m_Framebuffer->ReadID(1, m_CursorPos.x, HEIGHT - m_CursorPos.y);
 			
 			static int savedID = -1;
-			if (id >= 0 && id < activeLevel->GetLevelMap().size())
+			if (id >= 0 && id < (int)activeLevel->GetLevelMap().size())
 			{
 				if (mouseButtons[MOUSE_LEFT])
 				{
@@ -712,7 +662,7 @@ public:
 				{
 					ImVec2 bottomRight = *(ImVec2*)&tex->GetTexCoords().at(1);
 					ImVec2 topLeft = *(ImVec2*)&tex->GetTexCoords().at(3);
-					ImGui::Image((ImTextureID)tex->GetTextureID(), ImVec2(32, 32), topLeft, bottomRight);
+					ImGui::Image((ImTextureID)(tex->GetTextureID()), ImVec2(32, 32), topLeft, bottomRight);
 				}
 
 				static const char* items[] = { "Water", "Rock", "Tree", "None" };
@@ -769,7 +719,7 @@ public:
 
 				// Testing behavior of widgets stacking their own regular popups over the modal.
 				static int item = 1;
-				static int color[4] = { 1, 2, 3, 4 };
+				// static int color[4] = { 1, 2, 3, 4 };
 				ImGui::Combo("Combo", &item, "Human Enemy 1\0Human Enemy 2\0Animal Enemy 1\0Animal Enemy 2\0Animal Enemy 3\0\0");
 
 				if (ImGui::Button("Add another modal.."))
@@ -795,7 +745,7 @@ public:
 			ImGui::Checkbox("Show grid", &showGrid);
 			ImGui::DragInt("Grid square size", &m_GridCellSize, 1, 0);
 			ImGui::DragInt("Line width", &m_LineWidth, 1, 0, 31);
-			ImGui::Text("Level map size: %d", activeLevel->GetLevelMap().size());
+			ImGui::Text("Level map size: %d", (int)activeLevel->GetLevelMap().size());
 			static int additionSize = 0;
 			ImGui::InputInt("Map size NxN", &additionSize);
 			if (ImGui::Button("Resize##Resize-button"))
@@ -1003,7 +953,7 @@ public:
 		zeus::EventDispatcher dispatcher(evt);
 
 		std::function<bool()> mousePressed = [&]() -> bool {
-			auto [x, y] = zeus::Input::GetMousePosition();
+			// auto [x, y] = zeus::Input::GetMousePosition();
 			auto mouseEvent = (zeus::MousePressedEvent&)evt;
 
 			mouseButtons[mouseEvent.GetMouseButton()] = true;
@@ -1012,7 +962,7 @@ public:
 		};
 
 		std::function<bool()> mouseReleased = [&]() -> bool {
-			auto [x, y] = zeus::Input::GetMousePosition();
+			// auto [x, y] = zeus::Input::GetMousePosition();
 			auto mouseEvent = (zeus::MouseReleasedEvent&)evt;
 
 			mouseButtons[mouseEvent.GetMouseButton()] = false;
@@ -1051,8 +1001,8 @@ public:
 		};
 
 		std::function<bool()> mouseMoved = [&]() -> bool {
-			auto mouseEvent = (zeus::MouseMovedEvent&)evt;
-			auto pos = mouseEvent.GetMousePosition();
+			// auto mouseEvent = (zeus::MouseMovedEvent&)evt;
+			// auto pos = mouseEvent.GetMousePosition();
 
 			return true;
 		};
@@ -1137,7 +1087,7 @@ int main()
 		app->PushLayer(new EngineInfoLayer("engine"));
 		app->Run();
 	}
-	catch (std::exception e)
+	catch (const std::runtime_error& e)
 	{
 		LOG(Error, "%s", e.what());
 	}

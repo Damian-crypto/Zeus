@@ -32,4 +32,4 @@ target_link_directories(${PROJECT_NAME}
     ${MYPROJECT_DIR}/Engine/dependencies/zerializer
 )
 
-target_link_libraries(${PROJECT_NAME} Engine Phyzics zerializer)
+target_link_libraries(${PROJECT_NAME} Engine Phyzics Zerializer)
