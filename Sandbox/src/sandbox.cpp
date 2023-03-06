@@ -78,6 +78,7 @@ private:
 
 	std::vector<Tile> m_Map;
 	std::shared_ptr<zeus::Zerializer> m_Serializer;
+	std::unordered_map<int, bool> m_Selected;
 
 public:
 	void OnStart() override
@@ -122,7 +123,15 @@ public:
 				if (idx < (int)m_Map.size())
 				{
 					quad.SetPosition({ xx, yy, 0.0f });
-					quad.SetSize({ m_CellSize, m_CellSize, 0.0f });
+					if (m_Selected[idx])
+					{
+						float dx = m_CellSize * 0.2f;
+						quad.SetSize({ m_CellSize + dx, m_CellSize + dx, 0.0f });
+					}
+					else
+					{
+						quad.SetSize({ m_CellSize, m_CellSize, 0.0f });
+					}
 					quad.SetRotation(0.0f);
 					quad.SetSubTexture(textureManager->GetSubTexture("building_sheet", m_Map[idx].TexCoords.x, m_Map[idx].TexCoords.y));
 					quad.SetEntityID(idx);
@@ -184,11 +193,32 @@ public:
 		return m_Map;
 	}
 
+	void ChangeAllTiles(glm::ivec2 oldTex, TileType newType)
+	{
+		for (Tile& tile : m_Map)
+		{
+			if (tile.TexCoords == oldTex)
+			{
+				tile.Type = newType;
+			}
+		}
+	}
+
 	void ClearLevelMap()
 	{
 		m_LevelCols = 0;
 		m_LevelRows = 0;
 		m_Map.clear();
+	}
+
+	void SelectCell(int id)
+	{
+		m_Selected[id] = true;
+	}
+
+	void DeselectAll()
+	{
+		m_Selected.clear();
 	}
 
 	void SetCellsize(uint32_t size)
@@ -290,24 +320,24 @@ public:
 		m_LevelRows = m_Serializer->DeserializeInt("rows");
 		m_CellSize = m_Serializer->DeserializeInt("cellsize");
 		m_CellGap = m_Serializer->DeserializeDbl("cellgap");
-		
-	    const std::function<Tile(const std::string&)> sToTile = [](const std::string& s) {
-	        LOG(Info, "converting...");
 
+	    const std::function<Tile(const std::string&)> sToTile = [](const std::string& s) {
+	        Tile tile;
 	        std::vector<int> res;
 	        std::stringstream ss(s);
 	        std::string token;
 	        size_t pos;
+
+	        std::cout << s << std::endl;
+
 	        while (ss >> token)
 	        {
 	            pos = token.find(",");
 	            if (pos != std::string::npos)
 	                token.erase(pos, 1);
-	            // std::cout << "token: " << token << std::endl;
 	            res.push_back(std::stoi(token));
 	        }
 
-	        Tile tile;
 	        tile.TexCoords = { res[0], res[1] };
 	        tile.Type = (TileType)res[2];
 	        tile.idx = res[3];
@@ -315,8 +345,6 @@ public:
 	        return tile;
 	    };
 		std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", sToTile);
-
-		std::cout << "DEBUG==> " << levelmap.size() << "\n";
 
 		// Reading map
 		for (const auto& tile : levelmap)
@@ -600,7 +628,7 @@ public:
 
 				int id = m_Framebuffer->ReadID(1, m_CursorPos.x, HEIGHT - m_CursorPos.y);
 
-				if (mouseButtons[MOUSE_RIGHT])
+				if (mouseButtons[MOUSE_RIGHT] && m_Keys[KEY_LEFT_CONTROL])
 				{
 					if (ImGui::IsWindowFocused())
 					{
@@ -634,9 +662,25 @@ public:
 				}
 			}
 
+			if (ImGui::BeginPopupContextItem("level_rclick"))
+			{
+				if (ImGui::Button("Level details"))
+					ImGui::OpenPopup("level_info");
+
+				if (ImGui::BeginPopup("level_info"))
+				{
+					ImGui::Text("Current File: %s", activeLevel->GetLevelPath().c_str());
+					ImGui::EndPopup();
+				}
+
+				ImGui::EndPopup();
+			}
+
 			const auto& tex = m_Framebuffer->GetAttachedTextures()[0];
 			ImGui::Image(reinterpret_cast<void*>(tex->GetTextureID()), ImVec2{ WIDTH, HEIGHT }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-			
+
+			ImGui::OpenPopupOnItemClick("level_rclick", ImGuiPopupFlags_MouseButtonRight);
+
 			ImGui::End();
 		}
 
@@ -644,12 +688,18 @@ public:
 		{
 			int id = m_Framebuffer->ReadID(1, m_CursorPos.x, HEIGHT - m_CursorPos.y);
 			
+			if (mouseButtons[MOUSE_LEFT] && !m_Keys[KEY_LEFT_CONTROL])
+			{
+				activeLevel->DeselectAll();
+			}
+
 			static int savedID = -1;
 			if (id >= 0 && id < (int)activeLevel->GetLevelMap().size())
 			{
 				if (mouseButtons[MOUSE_LEFT])
 				{
 					savedID = id;
+					activeLevel->SelectCell(id);
 				}
 			}
 
@@ -665,34 +715,30 @@ public:
 					ImGui::Image((ImTextureID)(tex->GetTextureID()), ImVec2(32, 32), topLeft, bottomRight);
 				}
 
+				// This list order as original tile types order since index are corresponding
 				static const char* items[] = { "Water", "Rock", "Tree", "None" };
-				if (true)
+				int item_current_idx = (int)tile.Type;
+				const char* combo_preview_value = items[item_current_idx];
+				if (ImGui::BeginCombo("Assigned Type", combo_preview_value, 0))
 				{
-					int item_current_idx = (int)tile.Type;
-					const char* combo_preview_value = items[item_current_idx];
-					if (ImGui::BeginCombo("Assigned Type", combo_preview_value, 0))
+					for (int n = 0; n < IM_ARRAYSIZE(items); n++)
 					{
-						for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+						const bool is_selected = (item_current_idx == n);
+						if (ImGui::Selectable(items[n], is_selected))
+							item_current_idx = n;
+
+						if (is_selected)
 						{
-							const bool is_selected = (item_current_idx == n);
-							if (ImGui::Selectable(items[n], is_selected))
-								item_current_idx = n;
-
-							if (is_selected)
-							{
-								ImGui::SetItemDefaultFocus();
-							}
+							ImGui::SetItemDefaultFocus();
 						}
-						ImGui::EndCombo();
 					}
-
-					if (tile.Type != (SandboxLevel::TileType)item_current_idx)
-					{
-						tile.Type = (SandboxLevel::TileType)item_current_idx;
-					}
+					ImGui::EndCombo();
 				}
 
-				ImGui::Text("Selected entity id: %d", savedID);
+				if (tile.Type != (SandboxLevel::TileType)item_current_idx)
+				{
+					tile.Type = (SandboxLevel::TileType)item_current_idx;
+				}
 			}
 
 			ImGui::Text("%f %f: %d", m_CursorPos.x, m_CursorPos.y, id);
@@ -955,7 +1001,6 @@ public:
 		std::function<bool()> mousePressed = [&]() -> bool {
 			// auto [x, y] = zeus::Input::GetMousePosition();
 			auto mouseEvent = (zeus::MousePressedEvent&)evt;
-
 			mouseButtons[mouseEvent.GetMouseButton()] = true;
 
 			return true;
@@ -964,7 +1009,6 @@ public:
 		std::function<bool()> mouseReleased = [&]() -> bool {
 			// auto [x, y] = zeus::Input::GetMousePosition();
 			auto mouseEvent = (zeus::MouseReleasedEvent&)evt;
-
 			mouseButtons[mouseEvent.GetMouseButton()] = false;
 
 			return true;

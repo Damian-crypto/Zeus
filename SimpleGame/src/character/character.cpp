@@ -20,7 +20,7 @@ Character::Character()
 		if (strcmp((const char*)body->InternalData, "bullet") == 0)
 		{
 			// me->IsDead = true;
-			QUICK_LOG(Trace, "Player is dead by bullet!!!!");
+			// QUICK_LOG(Trace, "Player is dead by bullet!!!!");
 		}
 	};
 }

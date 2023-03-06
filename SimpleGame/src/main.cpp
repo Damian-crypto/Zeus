@@ -9,13 +9,12 @@ int main()
 {
 	try
 	{
-		zeus::ApplicationProperties props {
-			.Title = "City Game",
-			.Width = WIDTH,
-			.Height = HEIGHT,
-			.GameUI = true,
-			.Resizable = false
-		};
+		zeus::ApplicationProperties props;
+		props.Title = "City Game";
+		props.Width = WIDTH;
+		props.Height = HEIGHT;
+		props.GameUI = true;
+		props.Resizable = false;
 
 		auto app = new zeus::Application(props);
 		app->Init();

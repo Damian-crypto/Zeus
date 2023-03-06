@@ -36,6 +36,7 @@
 [Aa]rch/
 [Bb]uild/
 .vscode/
+.cache/
 
 # CodeEditor files
 *.sublime*

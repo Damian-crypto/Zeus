@@ -49,7 +49,6 @@ void BeginLevel::Draw()
 
 			//zeus::Renderer::DrawQuad(quad);
 		}
-		// std::cout << '\n';
 	}
 }
 
@@ -79,52 +78,45 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 	m_CellSize = m_Serializer->DeserializeInt("cellsize");
 	m_CellGap = m_Serializer->DeserializeDbl("cellgap");
 	
-    const std::function<std::vector<int>(const std::string&)> sToVec = [](const std::string& s) {
+    const std::function<Tile(const std::string&)> sToTile = [](const std::string& s) {
+        Tile tile;
         std::vector<int> res;
         std::stringstream ss(s);
         std::string token;
         size_t pos;
+
+        std::cout << s << std::endl;
+
         while (ss >> token)
         {
             pos = token.find(",");
             if (pos != std::string::npos)
                 token.erase(pos, 1);
-            // std::cout << "token: " << token << std::endl;
             res.push_back(std::stoi(token));
         }
 
-        return res;
+        tile.TexCoords = { res[0], res[1] };
+        tile.Type = (TileType)res[2];
+        tile.idx = res[3];
+
+        return tile;
     };
-	std::vector<std::vector<std::vector<int>>> levelmap = m_Serializer->DeserializeVec2<std::vector<int>>("levelmap", sToVec);
+    std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", sToTile);
 
 	// Reading map
-	for (int col = 0; col < m_LevelCols; col++)
+	for (Tile& tile : levelmap)
 	{
-		for (int row = 0; row < m_LevelRows; row++)
-		{
-			int texX = levelmap[row][col][0];
-			int texY = levelmap[row][col][1];
-			int mode = levelmap[row][col][2];
-			int indx = levelmap[row][col][3];
-
-			Tile tile;
-			tile.TexCoords = { texX, texY };
-			tile.Type = (TileType)mode;
-			// tile.Position = { posX, posY, 0 };
-			tile.idx = indx;
-			tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
-			tile.PhysicalBody->SetWidth(m_CellSize);
-			tile.PhysicalBody->SetHeight(m_CellSize);
-			if (mode == 1) {
-				tile.PhysicalBody->InternalData = (void*)"rock";
-				m_Phyzics->AddBody(tile.PhysicalBody);
-			} else {
-				tile.PhysicalBody->InternalData = (void*)"none";
-			}
-
-			m_Map.emplace_back(tile);
-			// std::cout << '\n';
+		tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
+		tile.PhysicalBody->SetWidth(m_CellSize);
+		tile.PhysicalBody->SetHeight(m_CellSize);
+		if (tile.Type == TileType::Rock) {
+			tile.PhysicalBody->InternalData = (void*)"rock";
+			m_Phyzics->AddBody(tile.PhysicalBody);
+		} else {
+			tile.PhysicalBody->InternalData = (void*)"none";
 		}
+
+		m_Map.emplace_back(tile);
 	}
 
 	// Reading enemy

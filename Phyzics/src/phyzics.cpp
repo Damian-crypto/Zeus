@@ -29,7 +29,7 @@ namespace zeus
 				if (body == nullptr || body->IsDead)
 				{
 					const char* data = (const char*)body->InternalData;
-					std::cout << data << " is dead\n";
+					// std::cout << data << " is dead\n";
 					m_Bodies.erase(m_Bodies.begin() + i);
 					continue;
 				}

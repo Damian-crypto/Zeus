@@ -13,12 +13,14 @@ RED='\033[0;31m';
 GREEN='\033[0;32m';
 NONE='\033[0;0m';
 
+MYDIR=$(pwd)
+
 function configure_game() {
-    cmake -DBUILD_SIMPLEGAME=ON -S . -B build/
+    cmake -DBUILD_SIMPLEGAME=ON -DMYPROJECT_DIR="${MYDIR}" -S . -B build/
 }
 
 function configure_leveleditor() {
-    cmake -DBUILD_SANDBOX=ON -S . -B build/
+    cmake -DBUILD_SANDBOX=ON -DMYPROJECT_DIR="${MYDIR}" -S . -B build/
 }
 
 if [[ $2 = "" ]] then
