@@ -52,7 +52,7 @@ namespace zeus
 		fileMenu.ItemName = "menu$$File";
 		MenuItem openItem;
 		openItem.ItemName = "menu-item$$Open";
-		openItem.Action = []() -> bool { LOG_ENGINE(Trace, "Open File"); };
+		openItem.Action = []() -> bool { LOG_ENGINE(Trace, "Open File"); return false; };
 		m_ImGui->AddMenuItem(fileMenu);
 		m_ImGui->AddMenuItem(openItem);
 	}

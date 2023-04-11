@@ -2,24 +2,22 @@ cmake_minimum_required(VERSION 3.22)
 
 project(Sandbox)
 
-# set(MYPROJECT_DIR "/run/media/damianchamel/Data/DATA/Running On/Warehouse/Test/Zeus")
-
 add_executable(${PROJECT_NAME} src/sandbox.cpp)
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-    ${MYPROJECT_DIR}/Phyzics/src/include
-    ${MYPROJECT_DIR}/Engine/src/include
+    ${CMAKE_SOURCE_DIR}/Phyzics/src/include
+    ${CMAKE_SOURCE_DIR}/Engine/src/include
     PRIVATE
-    ${MYPROJECT_DIR}/Engine/dependecies/zerializer
+    ${CMAKE_SOURCE_DIR}/Engine/dependecies/zerializer
 )
 
 target_link_directories(${PROJECT_NAME}
     PUBLIC
-    ${MYPROJECT_DIR}/Phyzics
-    ${MYPROJECT_DIR}/Engine
+    ${CMAKE_BINARY_DIR}/Phyzics
+    ${CMAKE_BINARY_DIR}/Engine
     PRIVATE
-    ${MYPROJECT_DIR}/Engine/dependecies/zerializer
+    ${CMAKE_BINARY_DIR}/Engine/dependecies/zerializer
 )
 
 target_link_libraries(${PROJECT_NAME} Engine Phyzics Zerializer)

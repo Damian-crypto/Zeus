@@ -12,6 +12,7 @@ uniform mat4 u_View;
 uniform mat4 u_Projection;
 
 out vec4 f_Color;
+out vec3 f_Position;
 out vec2 f_TexCoord;
 out flat int f_TexSlot;
 out float f_TilingFactor;
@@ -20,6 +21,7 @@ out flat int f_ID;
 void main()
 {
 	f_Color = a_Color;
+	f_Position = a_Position;
 	f_TexCoord = a_TexCoord;
 	f_TexSlot = a_TexSlot;
 	f_TilingFactor = a_TilingFactor;

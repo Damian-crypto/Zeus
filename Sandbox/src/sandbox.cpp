@@ -122,32 +122,25 @@ public:
 
 				if (idx < (int)m_Map.size())
 				{
-					quad.SetPosition({ xx, yy, 0.0f });
 					if (m_Selected[idx])
 					{
 						float dx = m_CellSize * 0.2f;
-						quad.SetSize({ m_CellSize + dx, m_CellSize + dx, 0.0f });
+						quad.SetSize({ m_CellSize + dx, m_CellSize + dx, 1.0f });
 					}
 					else
 					{
 						quad.SetSize({ m_CellSize, m_CellSize, 0.0f });
 					}
+
+					quad.SetPosition({ xx, yy, m_Map[idx].Position.z });
 					quad.SetRotation(0.0f);
 					quad.SetSubTexture(textureManager->GetSubTexture("building_sheet", m_Map[idx].TexCoords.x, m_Map[idx].TexCoords.y));
 					quad.SetEntityID(idx);
 
 					zeus::Renderer::DrawTexturedQuad(quad);
 				}
-
-				// const auto& tile = m_Map[idx];
-				// std::cout << "(" << tile.TexCoords.x << ", " << tile.TexCoords.y << ", " << (int)tile.Type << ") ";
-
-				//zeus::Renderer::DrawQuad(quad);
 			}
-			// std::cout << '\n';
 		}
-		
-		// while (true);
 
 		quad.SetPosition(spritePos);
 		quad.SetSize(scaler);
@@ -247,7 +240,7 @@ public:
 		s.erase(s.begin(), std::find_if(
 				s.begin(),
 				s.end(),
-				[](unsigned char c) { return not std::isspace(c); }
+				[](unsigned char c) { return !std::isspace(c); }
 			)
 		);
 	}
@@ -257,7 +250,7 @@ public:
 		s.erase(std::find_if(
 				s.rbegin(),
 				s.rend(),
-				[](unsigned char c) { return not std::isspace(c); }
+				[](unsigned char c) { return !std::isspace(c); }
 			).base(),
 		s.end());
 	}
@@ -306,15 +299,7 @@ public:
 
 		zeus::SerialInfo info;
 		info.SerializationType = zeus::SerialType::PROPERTIES;
-		try
-		{
-			m_Serializer->StartDeserialize(filepath, info);
-		}
-		catch (std::runtime_error& e)
-		{
-			LOG(Error, e.what());
-			return;
-		}
+		m_Serializer->StartDeserialize(filepath, info);
 
 		m_LevelCols = m_Serializer->DeserializeInt("cols");
 		m_LevelRows = m_Serializer->DeserializeInt("rows");
@@ -327,8 +312,6 @@ public:
 	        std::stringstream ss(s);
 	        std::string token;
 	        size_t pos;
-
-	        std::cout << s << std::endl;
 
 	        while (ss >> token)
 	        {
@@ -714,6 +697,8 @@ public:
 					ImVec2 topLeft = *(ImVec2*)&tex->GetTexCoords().at(3);
 					ImGui::Image((ImTextureID)(tex->GetTextureID()), ImVec2(32, 32), topLeft, bottomRight);
 				}
+
+				ImGui::DragFloat("z-index", &tile.Position.z, 0.01f, -1.0f, 1.0f);
 
 				// This list order as original tile types order since index are corresponding
 				static const char* items[] = { "Water", "Rock", "Tree", "None" };

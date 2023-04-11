@@ -6,7 +6,8 @@
 
 bool Validate()
 {
-	if (GLenum error = glGetError(); error != GL_NO_ERROR)
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR)
 	{
 		std::string msg{};
 		switch (error)
@@ -46,7 +47,7 @@ bool Validate()
 
 void Check(const char* function, const char* file, int line)
 {
-	if (not Validate())
+	if (!Validate())
 	{
 		std::string msg = "OpenGL Error: Found at " + std::string(file) + "[" + std::to_string(line) + "] -> " + std::string(function);
 		LOG_ENGINE(Error, msg.c_str());

@@ -17,19 +17,21 @@ add_executable(${PROJECT_NAME}
     src/weapon/sword.cpp
 )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-    ${MYPROJECT_DIR}/Phyzics/src/include
-    ${MYPROJECT_DIR}/Engine/src/include
-    ${MYPROJECT_DIR}/Engine/dependencies/zerializer/include
+    ${CMAKE_SOURCE_DIR}/Phyzics/src/include
+    ${CMAKE_SOURCE_DIR}/Engine/src/include
+    ${CMAKE_SOURCE_DIR}/Engine/dependencies/zerializer/include
     src
 )
 
 target_link_directories(${PROJECT_NAME}
     PUBLIC
-    ${MYPROJECT_DIR}/Engine
-    ${MYPROJECT_DIR}/Phyzics
-    ${MYPROJECT_DIR}/Engine/dependencies/zerializer
+    ${CMAKE_BINARY_DIR}/Engine
+    ${CMAKE_BINARY_DIR}/Phyzics
+    ${CMAKE_BINARY_DIR}/Engine/dependencies/zerializer
 )
 
 target_link_libraries(${PROJECT_NAME} Engine Phyzics Zerializer)

@@ -108,6 +108,7 @@ namespace zeus
 		static void SetColorBlending(bool enabled);
 		static void SetBackgroundColor(const glm::vec4& color);
 		static void Refresh();
+
 		static RendererStatistics GetRendererStat();
 	};
 }

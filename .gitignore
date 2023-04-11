@@ -35,8 +35,10 @@
 # Directories
 [Aa]rch/
 [Bb]uild/
+[Oo]ut/
 .vscode/
 .cache/
+.vs/
 
 # CodeEditor files
 *.sublime*

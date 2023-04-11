@@ -48,6 +48,12 @@ namespace zeus
 		
 		std::vector<glm::vec4> QuadVertices;
 		std::vector<glm::vec2> TextureCoordinates;
+		std::vector<glm::vec2> DefaultTextureCoordinates = {
+			glm::vec2(0, 0),
+			glm::vec2(1, 0),
+			glm::vec2(1, 1),
+			glm::vec2(0, 1)
+		};
 
 		uint32_t NextQuadVertex	= 0;
 
@@ -176,7 +182,7 @@ namespace zeus
 			glm::vec4 position = factor * s_RenderData.QuadVertices[i];
 			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].Position = position;
 			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].Color = quad.Color;
-			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureCoords = { 0.0f, 0.0f };
+			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureCoords = { 0, 0 };
 			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TextureSlot = -1.0f; // tex index -1 means it is a color
 			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].TilingFactor = quad.TilingFactor;
 			s_RenderData.QuadVertexData[s_RenderData.NextQuadVertex].EntityID = quad.EntityID;
@@ -208,6 +214,7 @@ namespace zeus
 		if (quad.qTexture == nullptr && quad.qSubTexture == nullptr)
 		{
 			texSlot = -1;
+			s_RenderData.TextureCoordinates = s_RenderData.DefaultTextureCoordinates;
 		}
 
 		// Transformation order: scale -> rotate -> transform
