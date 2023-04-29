@@ -63,15 +63,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 
 	zeus::SerialInfo info;
 	info.SerializationType = zeus::SerialType::PROPERTIES;
-	try
-	{
-		m_Serializer->StartDeserialize(filepath, info);
-	}
-	catch (std::runtime_error& e)
-	{
-		LOG(Error, e.what());
-		return;
-	}
+	m_Serializer->StartDeserialize(filepath, info);
 
 	m_LevelCols = m_Serializer->DeserializeInt("cols");
 	m_LevelRows = m_Serializer->DeserializeInt("rows");
@@ -85,14 +77,22 @@ void BeginLevel::LoadLevel(const std::string& filepath)
         std::string token;
         size_t pos;
 
-        std::cout << s << std::endl;
+        //std::cout << s << std::endl;
 
         while (ss >> token)
         {
             pos = token.find(",");
             if (pos != std::string::npos)
                 token.erase(pos, 1);
-            res.push_back(std::stoi(token));
+			for (char c : token)
+			{
+				if (!std::isdigit(c))
+				{
+					LOG(Error, "Parse Error::Invalid token found: %s", token);
+					break;
+				}
+			}
+			res.push_back(std::stoi(token));
         }
 
         tile.TexCoords = { res[0], res[1] };

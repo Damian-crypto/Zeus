@@ -275,6 +275,7 @@ public:
 			return;
 		}
 
+		// Tile(posX, posY, type, index)
 	    const std::function<std::string(const Tile&)> ivToString = [](const Tile& tile) {
 			std::stringstream ss;
 			ss << "(" << tile.TexCoords.x << ", ";

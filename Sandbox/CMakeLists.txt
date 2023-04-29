@@ -4,6 +4,8 @@ project(Sandbox)
 
 add_executable(${PROJECT_NAME} src/sandbox.cpp)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     ${CMAKE_SOURCE_DIR}/Phyzics/src/include
