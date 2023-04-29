@@ -4,3 +4,6 @@
 [submodule "Engine/dependency/zerializer"]
 	path = Engine/dependency/zerializer
 	url = git@github.com:Damian-crypto/zerializer.git
+[submodule "Zeus/dependency/zerializer"]
+	path = Zeus/dependency/zerializer
+	url = https://github.com/Damian-crypto/zerializer.git
