@@ -265,15 +265,7 @@ public:
 	{
 		zeus::SerialInfo info;
 		info.SerializationType = zeus::SerialType::PROPERTIES;
-		try
-		{
-			m_Serializer->StartSerialize(m_LevelPath, info);
-		}
-		catch (std::runtime_error& e)
-		{
-			LOG(Error, e.what());
-			return;
-		}
+		m_Serializer->StartSerialize(m_LevelPath, info);
 
 		// Tile(posX, posY, type, index)
 	    const std::function<std::string(const Tile&)> ivToString = [](const Tile& tile) {
@@ -307,10 +299,11 @@ public:
 		m_CellSize = m_Serializer->DeserializeInt("cellsize");
 		m_CellGap = m_Serializer->DeserializeDbl("cellgap");
 
-	    const std::function<Tile(const std::string&)> sToTile = [](const std::string& s) {
-	        Tile tile;
+	    const std::function<Tile(std::string&)> sToTile = [](std::string& s) {
+			Tile tile;
 	        std::vector<int> res;
-	        std::stringstream ss(s);
+			std::stringstream ss;
+			ss.str(s);
 	        std::string token;
 	        size_t pos;
 
@@ -1109,18 +1102,11 @@ public:
 
 int main()
 {
-	try
-	{
-		auto app = new zeus::Application({ "Sandbox", WIDTH, HEIGHT, false });
-		app->Init();
-		app->PushLayer(new SandboxLayer("sandbox"));
-		app->PushLayer(new EngineInfoLayer("engine"));
-		app->Run();
-	}
-	catch (const std::runtime_error& e)
-	{
-		LOG(Error, "%s", e.what());
-	}
+	auto app = new zeus::Application({ "Sandbox", WIDTH, HEIGHT, false });
+	app->Init();
+	app->PushLayer(new SandboxLayer("sandbox"));
+	app->PushLayer(new EngineInfoLayer("engine"));
+	app->Run();
 
 	return 0;
 }

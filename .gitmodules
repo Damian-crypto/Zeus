@@ -7,3 +7,9 @@
 [submodule "Zeus/dependency/zerializer"]
 	path = Zeus/dependency/zerializer
 	url = https://github.com/Damian-crypto/zerializer.git
+[submodule "GLFW"]
+	path = GLFW
+	url = https://github.com/Damian-crypto/glfw
+[submodule "Zerializer"]
+	path = Zerializer
+	url = https://github.com/Damian-crypto/zerializer
