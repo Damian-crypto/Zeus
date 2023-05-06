@@ -1,6 +1,7 @@
 #include "zeus.h"
 #include "phyzicsall.h"
 #include "zerializer/zerializer.hpp"
+#include "util/string_manipulation.h"
 
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
@@ -63,9 +64,20 @@ public:
 	struct Tile
 	{
 		int idx = -1;
-		glm::vec3 Position;
-		glm::ivec2 TexCoords;
+		glm::vec3 Position{ 0.0f };
+		glm::ivec2 TexCoords{ 0.0f };
 		TileType Type = TileType::None;
+
+		std::string ToString() const
+		{
+			std::stringstream ss;
+			ss << "Tile(texX: " << TexCoords.x;
+			ss << ", texY: " << TexCoords.y;
+			ss << ", type: " << (int)Type;
+			ss << ", index: " << idx << ")";
+
+			return ss.str();
+		}
 	};
 
 private:
@@ -234,33 +246,6 @@ public:
 		return m_CellSize;
 	}
 
-	// String related utility functions for removing white spaces of a string(trailing/leading)
-	static inline void left_trim(std::string& s)
-	{
-		s.erase(s.begin(), std::find_if(
-				s.begin(),
-				s.end(),
-				[](unsigned char c) { return !std::isspace(c); }
-			)
-		);
-	}
-
-	static inline void right_trim(std::string& s)
-	{
-		s.erase(std::find_if(
-				s.rbegin(),
-				s.rend(),
-				[](unsigned char c) { return !std::isspace(c); }
-			).base(),
-		s.end());
-	}
-
-	static inline void trim(std::string& s)
-	{
-		left_trim(s);
-		right_trim(s);
-	}
-
 	void SaveLevel()
 	{
 		zeus::SerialInfo info;
@@ -299,77 +284,32 @@ public:
 		m_CellSize = m_Serializer->DeserializeInt("cellsize");
 		m_CellGap = m_Serializer->DeserializeDbl("cellgap");
 
-	    const std::function<Tile(std::string&)> sToTile = [](std::string& s) {
+	    const std::function<Tile(std::string)> StringToTile = [](std::string s) {
 			Tile tile;
-	        std::vector<int> res;
+	        std::vector<int> elements;
 			std::stringstream ss;
-			ss.str(s);
-	        std::string token;
-	        size_t pos;
+			ss << s;
 
-	        while (ss >> token)
-	        {
-	            pos = token.find(",");
-	            if (pos != std::string::npos)
-	                token.erase(pos, 1);
-	            res.push_back(std::stoi(token));
-	        }
+			std::string token;
+			while (ss >> token)
+			{
+				elements.push_back(stoi(token));
+			}
 
-	        tile.TexCoords = { res[0], res[1] };
-	        tile.Type = (TileType)res[2];
-	        tile.idx = res[3];
+	        tile.TexCoords = { elements[0], elements[1] };
+	        tile.Type = (TileType)elements[2];
+	        tile.idx = elements[3];
 
 	        return tile;
 	    };
-		std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", sToTile);
+
+		std::vector<Tile>& levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", StringToTile);
 
 		// Reading map
-		for (const auto& tile : levelmap)
+		for (const SandboxLevel::Tile& tile : levelmap)
 		{
 			m_Map.push_back(tile);
 		}
-
-		// Reading enemy
-		// if (m_Serializer->ReadHeader("enemy1"))
-		// {
-		// 	std::string enemyType = m_Serializer->DeserializeStr("type");
-		// 	EnemyType type = EnemyType::None;
-		// 	if (enemyType == "human")
-		// 	{
-		// 		type = EnemyType::Human;
-		// 	}
-		// 	else if (enemyType == "animal")
-		// 	{
-		// 		type = EnemyType::Animal;
-		// 	}
-		// 	else
-		// 	{
-		// 		type = EnemyType::None;
-		// 	}
-
-		// 	if (m_EnemyRegistry == nullptr)
-		// 	{
-		// 		LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
-		// 	}
-
-		// 	// Reading enemy position
-		// 	auto enemy = m_EnemyRegistry->CreateEnemy(type);
-
-		// 	const std::function<int(const std::string&)> sToInt = [](const std::string& s) {
-		// 		return std::stoi(s);
-		// 	};
-		// 	std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
-		// 	enemy->SetPosition({ pos[0], pos[1], 0.1f });
-		// 	m_Enemies.push_back(enemy);
-			
-		// 	// Reading enemy weapon
-		// 	std::string weaponName = m_Serializer->DeserializeStr("weapon");
-		// 	if (weaponName == "gun")
-		// 	{
-		// 		enemy->SetWeapon(WeaponType::Gun);
-		// 	}
-		// 	m_Serializer->EndHeader();
-		// }
 	}
 };
 
@@ -588,8 +528,8 @@ public:
 		ImGui::SetNextWindowSize(ImVec2{ 100, 100 });
 		const auto& activeLevel = (SandboxLevel*)m_LevelManager.GetActiveLevel().get();
 		static bool p_open = false;
-		const char* fileName = activeLevel->GetLevelName().c_str();
-		ImGui::Begin(fileName, &p_open, flags);
+		std::string fileName = activeLevel->GetLevelName();
+		ImGui::Begin(fileName.c_str(), &p_open, flags);
 		{
 			const auto& windowOffset = ImGui::GetWindowContentRegionMin();
 			// const auto& windowMax = ImGui::GetContentRegionAvail();

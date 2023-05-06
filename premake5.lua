@@ -161,12 +161,14 @@ project "SimpleGame"
 
 	includedirs
 	{
+		"%{prj.name}/src",
 		"Zeus/src/include",
 		"Zeus/src",
 		"Zeus/vendor/glm/include",
 		"Zeus/vendor/imgui",
 		"Zeus/vendor/stb_image/include",
-		"Phyzics/src/include"
+		"Phyzics/src/include",
+		"Zerializer/include"
 	}
 
 	links

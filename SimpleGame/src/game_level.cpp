@@ -9,7 +9,7 @@ glm::ivec2 platformPos{ -230, -96 };
 void BeginLevel::OnStart()
 {
 	m_Serializer = std::make_shared<zeus::Zerializer>();
-	LoadLevel("assets/levels/level1.data");
+	LoadLevel("assets/levels/level.data");
 }
 
 void BeginLevel::Draw()
@@ -43,11 +43,6 @@ void BeginLevel::Draw()
 
 				zeus::Renderer::DrawTexturedQuad(quad);
 			}
-
-			// const auto& tile = m_Map[idx];
-			// std::cout << "(" << tile.TexCoords.x << ", " << tile.TexCoords.y << ", " << (int)tile.Type << ") ";
-
-			//zeus::Renderer::DrawQuad(quad);
 		}
 	}
 }
@@ -70,38 +65,26 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 	m_CellSize = m_Serializer->DeserializeInt("cellsize");
 	m_CellGap = m_Serializer->DeserializeDbl("cellgap");
 	
-    const std::function<Tile(const std::string&)> sToTile = [](const std::string& s) {
-        Tile tile;
-        std::vector<int> res;
-        std::stringstream ss(s);
-        std::string token;
-        size_t pos;
+    const std::function<Tile(const std::string&)> StringToFile = [](const std::string& s) {
+		Tile tile;
+		std::vector<int> elements;
+		std::stringstream ss;
+		ss << s;
 
-        //std::cout << s << std::endl;
+		std::string token;
+		while (ss >> token)
+		{
+			elements.push_back(stoi(token));
+		}
 
-        while (ss >> token)
-        {
-            pos = token.find(",");
-            if (pos != std::string::npos)
-                token.erase(pos, 1);
-			for (char c : token)
-			{
-				if (!std::isdigit(c))
-				{
-					LOG(Error, "Parse Error::Invalid token found: %s", token);
-					break;
-				}
-			}
-			res.push_back(std::stoi(token));
-        }
+		tile.TexCoords = { elements[0], elements[1] };
+		tile.Type = (TileType)elements[2];
+		tile.idx = elements[3];
 
-        tile.TexCoords = { res[0], res[1] };
-        tile.Type = (TileType)res[2];
-        tile.idx = res[3];
-
-        return tile;
+		return tile;
     };
-    std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", sToTile);
+
+    std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", StringToFile);
 
 	// Reading map
 	for (Tile& tile : levelmap)

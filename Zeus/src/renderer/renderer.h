@@ -4,6 +4,7 @@
 #include "glm/glm.hpp"
 
 #include <memory>
+#include <sstream>
 
 namespace zeus
 {
@@ -43,16 +44,19 @@ namespace zeus
 		void SetColor(const glm::vec4& color)		{ this->Color = color; }
 		void SetRotation(float angle)				{ this->RotatedAngle = angle; }
 		void SetTilingFactor(float factor)			{ this->TilingFactor = factor; }
+
 		void SetTexture(std::shared_ptr<zeus::Texture> texture)
 		{
 			this->qTexture = texture;
 			this->qSubTexture = nullptr;
 		}
+
 		void SetSubTexture(std::shared_ptr<zeus::SubTexture> texture)
 		{
 			this->qSubTexture = texture;
 			this->qTexture = nullptr;
 		}
+
 		void SetEntityID(int id)
 		{
 			this->EntityID = id;
