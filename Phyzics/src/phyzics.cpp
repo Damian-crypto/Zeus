@@ -38,7 +38,7 @@ namespace zeus
 				{
 					if (body != body2 && body->IsCollide(body2))
 					{
-						// std::cout << ((const char*)body->InternalData) << " is collided with " << ((const char*)body2->InternalData) << '\n';
+						 //std::cout << ((const char*)body->InternalData) << " is collided with " << ((const char*)body2->InternalData) << '\n';
 						body->OnCollision(body2);
 						body2->OnCollision(body);
 					}

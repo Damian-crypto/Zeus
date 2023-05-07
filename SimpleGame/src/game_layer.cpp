@@ -9,7 +9,7 @@
 
 extern glm::ivec2 platformPos;
 
-std::shared_ptr<Enemy> enemy;
+std::shared_ptr<Enemy> enemy1, enemy2;
 GameLayer::GameLayer(const char* name)
 {
 	// Initializing Phyzics engine
@@ -36,7 +36,13 @@ GameLayer::GameLayer(const char* name)
 	m_Player->SetPhyzicsEngine(m_Phyzics);
 	m_Player->SetTextureManager(m_TexManager);
 	m_Player->SetPosition({ WIDTH / 2 + 100, HEIGHT / 2, 0.11f });
-	m_Player->SetSprite({ { 24.0f, 18.0f, 2.0f }, { 32.0f, 32.0f, 0.0f }, "person_sheet" });
+
+	Sprite PlayerSprite;
+	PlayerSprite.Coords = { 24, 16, 2 };
+	PlayerSprite.Size = { 32.0f, 32.0f, 0.0f };
+	PlayerSprite.Name = "person_sheet";
+	m_Player->SetSprite(PlayerSprite);
+
 	m_Player->SetWeapon(WeaponType::Gun);
 	m_EnemyReg->SetTarget(m_Player);
 
@@ -48,10 +54,15 @@ GameLayer::GameLayer(const char* name)
 	lvl1->GetLevelResources().TexManager = m_TexManager;
 	m_LevelManager.AddLevel(m_CurrentLevel, lvl1);
 
-	// Create new enemy
-	enemy = m_EnemyReg->CreateEnemy(EnemyType::Human);
-	enemy->SetPosition({ WIDTH / 2 - 150, HEIGHT / 2 - 50, 0.1f });
-	enemy->SetWeapon(WeaponType::Gun);
+	// Create new enemy 1
+	enemy1 = m_EnemyReg->CreateEnemy(EnemyType::Human);
+	enemy1->SetPosition({ WIDTH / 2 - 150, HEIGHT / 2 - 150, 0.1f });
+	enemy1->SetWeapon(WeaponType::Gun);
+
+	// Create new enemy 2
+	enemy2 = m_EnemyReg->CreateEnemy(EnemyType::Human);
+	enemy2->SetPosition({ WIDTH / 2 + 150, HEIGHT / 2 + 150, 0.1f });
+	enemy2->SetWeapon(WeaponType::Gun);
 
 	// Initializing Renderer
 	zeus::Renderer::Init();
@@ -223,8 +234,11 @@ void GameLayer::OnUpdate(float dt)
 		m_Player->Attack(dir);
 	}
 
-	float yFactor = enemy->GetVelocity().y < 0 ? -1.0f : 1.0f;
-	enemy->SetVelocity({ 0, yFactor * speed, 0 });
+	float yFactor = enemy1->GetVelocity().y < 0 ? -1.0f : 1.0f;
+	enemy1->SetVelocity({ 0, yFactor * speed, 0 });
+
+	yFactor = enemy2->GetVelocity().y < 0 ? -1.0f : 1.0f;
+	enemy2->SetVelocity({ 0, yFactor * speed, 0 });
 
 	m_Phyzics->Step(dt);
 	m_Player->OnUpdate(dt);

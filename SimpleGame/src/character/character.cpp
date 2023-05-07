@@ -25,63 +25,48 @@ Character::Character()
 	};
 }
 
-float step = 0.0f;
-/* This function will move the character
- * @param lock stop animation
- */
-void Character::Move(glm::vec3 velocity, bool lock)
+float step = 0.0f; // Speed of changing the sprite (animation)
+const int NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3; // Direction index of the player in sprite sheet
+void Character::Move(glm::vec3 velocity)
 {
-	m_Moving = true;
 	m_LastPosition = m_Position;
-
+	
 	if (velocity.x == 0 && velocity.y == 0 && velocity.z == 0)
 	{
 		velocity = GetVelocity();
 	}
-	lock = !(velocity.x != 0 || velocity.y != 0 || velocity.z != 0);
+
+	bool moving = (velocity.x != 0 || velocity.y != 0 || velocity.z != 0);
 
 	velocity.y *= 0.5f;
-	if (!lock)
+	if (moving)
 	{
 		m_Position += velocity;
 	}
 
-	// Direction of the player looking at
-	//		0 - North
-	//		1 - East
-	//		2 - South
-	//		3 - West
 	if (velocity.x != 0)
 	{
-		m_SpriteCoords.x = m_Sprite.Coords.x + (velocity.x > 0 ? 3 : 0);
-		// if (!lock)
-			// m_Position.x += velocity.x;
+		m_SpriteCoords.x = m_Sprite.Coords.x + (velocity.x > 0 ? WEST : NORTH);
 	}
 
 	if (velocity.y != 0)
 	{
-		m_SpriteCoords.x = m_Sprite.Coords.x + (velocity.y > 0 ? 2 : 1);
-		// if (!lock)
-			// m_Position.y += velocity.y;
+		m_SpriteCoords.x = m_Sprite.Coords.x + (velocity.y > 0 ? SOUTH : EAST);
 	}
 
-	// if (velocity.z != 0)
-	// {
-	// 	m_Position.z += velocity.z;
-	// }
-
-	if (!lock)
+	if (moving)
 	{
-		m_SpriteCoords.y = m_Sprite.Coords.y - step;
-		m_SpriteCoords.z -= m_Sprite.Coords.z;
+		m_SpriteCoords.y = m_Sprite.Coords.y + step;
 	}
 
 	m_PhysicalBody->Position = m_Position;
 	m_Weapon->SetPosition(m_Position);
 
-	step -= 0.1f;
-	if (step < 0.0f)
-		step = 2.0f;
+	step += 0.1f;
+	if (step > 2.8f)
+	{
+		step = 0.0f;
+	}
 }
 
 void Character::SetWeapon(WeaponType type)
@@ -114,20 +99,15 @@ void Character::OnUpdate(float dt)
 
 void Character::OnRender()
 {
-	if (!m_Moving)
-	{
-		m_SpriteCoords.y = m_Sprite.Coords.y;
-	}
-
-	static zeus::QuadData quad;
-	quad.SetPosition(m_Position);
-	quad.SetSubTexture(m_TexManager->GetSubTexture(m_Sprite.Name, m_SpriteCoords.x, m_SpriteCoords.y));
-	quad.SetSize(m_Sprite.Size);
-	zeus::Renderer::DrawTexturedQuad(quad);
+	static zeus::QuadData characterQuad;
+	characterQuad.SetPosition(m_Position);
+	characterQuad.SetSubTexture(m_TexManager->GetSubTexture(m_Sprite.Name, m_SpriteCoords.x, m_SpriteCoords.y));
+	characterQuad.SetSize(m_Sprite.Size);
+	zeus::Renderer::DrawTexturedQuad(characterQuad);
 
 	m_Weapon->OnRender();
 
-	m_Moving = false;
+	m_SpriteCoords.y = m_Sprite.Coords.y + 2; // otherwise player will stop at random positions :)
 }
 
 void Character::SetSprite(const Sprite& sprite)

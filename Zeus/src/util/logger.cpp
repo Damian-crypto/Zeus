@@ -20,6 +20,9 @@ namespace zeus
 
 	void Logger::Log(LogLevel level, const char* filename, int line, const char* function, const char* msg, bool showInfo, bool engine)
 	{
+		std::string _filename = filename;
+		_filename.erase(0, _filename.find_last_of('\\') + 1);
+
 #if defined(OS_WINDOWS)
 		unsigned short color = 0;
 		switch (level)
@@ -49,7 +52,7 @@ namespace zeus
 		}
 		if (showInfo)
 		{
-			std::cout << filename << ":" << line << "->" << function << ": ";
+			std::cout << _filename << ":" << line << "->" << function << ": ";
 		}
 		WriteConsoleA(consoleHandle, msg, (DWORD)bufferLength, charsWritten, 0);
 		SetConsoleTextAttribute(consoleHandle, WHITE);
@@ -60,7 +63,7 @@ namespace zeus
 		}
 		if (showInfo)
 		{
-			std::cout << filename << ":" << line << "->" << function << ": ";
+			std::cout << _filename << ":" << line << "->" << function << ": ";
 		}
 
 		std::cout << msg << '\n';

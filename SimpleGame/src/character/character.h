@@ -33,17 +33,18 @@ protected:
 	Sprite m_Sprite;
 
 private:
-	bool m_Moving = false;
 	std::shared_ptr<zeus::Phyzics> m_Phyzics = nullptr;
 	std::shared_ptr<zeus::PhyzicalBody> m_PhysicalBody = nullptr;
 
 public:
 	Character();
-	// This move function is not taking the actual position on the scene.
-	// But it adds the value you entered to the existing character location.
-	// e.g. player.xCoord += -1
-	// In the above example player moving towards left not it's position is -1
-	void Move(glm::vec3 velocity = glm::vec3(0.0f), bool lock = false);
+	/* This move function is not taking the actual position on the scene.
+	 * But it adds the value you entered to the existing character location.
+	 * e.g. player.xCoord += -1
+	 * In the above example player moving towards left not it's position is -1
+	 * @param velocity The value which will be added to its current position in each update
+	 */
+	void Move(glm::vec3 velocity = glm::vec3(0.0f));
 	virtual void Attack(float direction) = 0;
 	void OnUpdate(float dt);
 	void OnRender();
