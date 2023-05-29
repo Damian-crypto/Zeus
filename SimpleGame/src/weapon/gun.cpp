@@ -42,12 +42,14 @@ void Gun::OnUpdate(float dt)
 	}
 }
 
-void Gun::Attack(float direction)
+void Gun::Attack(float direction, float offset)
 {
 	Bullet bullet;
 	bullet.Direction = direction;
 	bullet.Origin = m_Position;
-	bullet.Position = m_Position; // TODO: bullet hitting me
+	float x = m_Position.x + offset * cos(direction);
+	float y = m_Position.y + offset * sin(direction);
+	bullet.Position = { x, y, 0.0f }; // TODO: bullet hitting me
 	bullet.MaxDistance = 200.0f;
 	bullet.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
 	bullet.PhysicalBody->Type = zeus::BodyShape::Quad;

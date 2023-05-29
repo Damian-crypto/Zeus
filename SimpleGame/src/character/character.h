@@ -42,7 +42,7 @@ public:
 	 * @param velocity The value which will be added to its current position in each update
 	 */
 	void Move(glm::vec3 velocity = glm::vec3(0.0f));
-	virtual void Attack(float direction) = 0;
+	virtual void Attack(float direction, float offset = 1.0f) = 0;
 	void OnUpdate(float dt);
 	void OnRender();
 

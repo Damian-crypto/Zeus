@@ -1,5 +1,5 @@
 #include "weapon.h"
 
-void Sword::Attack(float direction)
+void Sword::Attack(float direction, float offset)
 {
 }

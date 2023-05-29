@@ -16,7 +16,7 @@ protected:
 	std::shared_ptr<zeus::Phyzics> m_Phyzics = nullptr;
 
 public:
-	virtual void Attack(float direction) = 0;
+	virtual void Attack(float direction, float offset) = 0;
 	virtual void OnUpdate(float dt) {}
 	virtual void OnRender() {}
 
@@ -43,7 +43,7 @@ public:
 	Gun(std::shared_ptr<zeus::TextureManager> texManager, const glm::vec3& position);
 
 	void Init();
-	void Attack(float direction) override;
+	void Attack(float direction, float offset) override;
 	void OnUpdate(float dt) override;
 	void OnRender() override;
 };
@@ -51,11 +51,11 @@ public:
 class Sword : public Weapon
 {
 public:
-	void Attack(float direction) override;
+	void Attack(float direction, float offset) override;
 };
 
 class Axe : public Weapon
 {
 public:
-	void Attack(float direction) override;
+	void Attack(float direction, float offset) override;
 };

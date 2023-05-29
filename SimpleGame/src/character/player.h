@@ -7,5 +7,5 @@ class Player : public Character
 public:
 	Player();
 
-	void Attack(float direction);
+	void Attack(float direction, float offset);
 };

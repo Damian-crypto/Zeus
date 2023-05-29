@@ -12,7 +12,7 @@ HumanEnemy::HumanEnemy()
 {
 }
 
-void HumanEnemy::Attack(float direction)
+void HumanEnemy::Attack(float direction, float offset)
 {
 	if (GetPhyzicsEngine() == nullptr)
 	{
@@ -36,7 +36,7 @@ void HumanEnemy::Attack(float direction)
 			m_SpriteCoords.x = m_Sprite.Coords.x;
 
 		SetVelocity({ 0, 0, 0 });
-		m_Weapon->Attack(direction);
+		m_Weapon->Attack(direction, offset);
 	}
 }
 
@@ -77,7 +77,7 @@ void HumanEnemy::OnUpdate(float dt)
 	if (area.IsIntersectingWith(targetArea, 100))
 	{
 		float dir = atan2(targetPos.y - pos.y, targetPos.x - pos.x);
-		Attack(dir);
+		Attack(dir, size.x);
 	}
 	else
 	{

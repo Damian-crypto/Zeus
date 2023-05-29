@@ -18,7 +18,7 @@ Player::Player()
 	// };
 }
 
-void Player::Attack(float direction)
+void Player::Attack(float direction, float offset)
 {
-	m_Weapon->Attack(direction);
+	m_Weapon->Attack(direction, offset);
 }
