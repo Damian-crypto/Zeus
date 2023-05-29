@@ -17,9 +17,6 @@ enum class WeaponType
 
 class Character
 {
-public:
-	bool IsDead = false;
-
 protected:
 	glm::vec2 m_Size{ 0.0f };
 	glm::vec3 m_Position{ 0.0f };

@@ -4,10 +4,6 @@
 
 class Enemy : public Character
 {
-public:
-	std::string CollideObject;
-	bool Collided = false;
-
 protected:
 	std::shared_ptr<Character> m_Target = nullptr;
 

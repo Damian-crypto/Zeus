@@ -92,11 +92,12 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
 		tile.PhysicalBody->SetWidth(m_CellSize);
 		tile.PhysicalBody->SetHeight(m_CellSize);
-		if (tile.Type == TileType::Rock) {
+		if (tile.Type == TileType::Rock)
+		{
 			tile.PhysicalBody->InternalData = (void*)"rock";
 			m_Phyzics->AddBody(tile.PhysicalBody);
 		} else {
-			tile.PhysicalBody->InternalData = (void*)"none";
+			tile.PhysicalBody->InternalData = (void*)"void";
 		}
 
 		m_Map.emplace_back(tile);
@@ -133,7 +134,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		};
 		std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
 		enemy->SetPosition({ pos[0], pos[1], 0.1f });
-		m_Enemies.push_back(enemy);
+		//m_Enemies.push_back(enemy);
 		
 		// Reading enemy weapon
 		std::string weaponName = m_Serializer->DeserializeStr("weapon");

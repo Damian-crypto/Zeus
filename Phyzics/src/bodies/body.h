@@ -14,6 +14,12 @@ namespace zeus
 		Quad
 	};
 
+	struct PhyzicalBody;
+	struct PhyzicalCollision
+	{
+		std::shared_ptr<PhyzicalBody> CollisionBody;
+	};
+
 	struct PhyzicalBody
 	{
 	private:
@@ -28,7 +34,7 @@ namespace zeus
 		float MovementSpeed;
 		float Radius;
 		BodyShape Type = BodyShape::None;
-		std::function<void(const std::shared_ptr<PhyzicalBody> body, PhyzicalBody* me)> CollideFunction;
+		PhyzicalCollision Collision;
 		bool IsDead = false;
 		void* InternalData = nullptr;
 

@@ -2,12 +2,18 @@
 
 Gun::Gun()
 {
+	Init();
 }
 
 Gun::Gun(std::shared_ptr<zeus::TextureManager> texManager, const glm::vec3& position)
 {
 	m_TexManager = texManager;
 	m_Position = position;
+	Init();
+}
+
+void Gun::Init()
+{
 }
 
 void Gun::OnUpdate(float dt)
@@ -48,7 +54,6 @@ void Gun::Attack(float direction)
 	bullet.PhysicalBody->SetWidth(32);
 	bullet.PhysicalBody->SetHeight(32);
 	bullet.PhysicalBody->InternalData = (void*)"bullet";
-	bullet.PhysicalBody->CollideFunction = CollisionFn;
 	if (m_Phyzics == nullptr)
 	{
 		LOG(Error, "Runtime Error: Phyzics engine is not initialized for calculations!");

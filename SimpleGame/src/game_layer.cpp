@@ -9,7 +9,7 @@
 
 extern glm::ivec2 platformPos;
 
-std::shared_ptr<Enemy> enemy1, enemy2;
+Enemy *enemy1, *enemy2;
 GameLayer::GameLayer(const char* name)
 {
 	// Initializing Phyzics engine
@@ -56,12 +56,12 @@ GameLayer::GameLayer(const char* name)
 
 	// Create new enemy 1
 	enemy1 = m_EnemyReg->CreateEnemy(EnemyType::Human);
-	enemy1->SetPosition({ WIDTH / 2 - 150, HEIGHT / 2 - 150, 0.1f });
+	enemy1->SetPosition({ WIDTH / 2 - 200, HEIGHT / 2 - 150, 0.1f });
 	enemy1->SetWeapon(WeaponType::Gun);
 
 	// Create new enemy 2
 	enemy2 = m_EnemyReg->CreateEnemy(EnemyType::Human);
-	enemy2->SetPosition({ WIDTH / 2 + 150, HEIGHT / 2 + 150, 0.1f });
+	enemy2->SetPosition({ WIDTH / 2 + 200, HEIGHT / 2 + 150, 0.1f });
 	enemy2->SetWeapon(WeaponType::Gun);
 
 	// Initializing Renderer

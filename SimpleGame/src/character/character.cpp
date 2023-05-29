@@ -1,4 +1,5 @@
 #include "character.h"
+#include "phyzicsall.h"
 
 #include <cstring>
 #include <iostream>
@@ -11,18 +12,6 @@ Character::Character()
 	m_PhysicalBody->InternalData = (void*)"player";
 	m_PhysicalBody->SetWidth(90.0f);
 	m_PhysicalBody->SetHeight(100.0f);
-	m_PhysicalBody->CollideFunction = [&](const std::shared_ptr<zeus::PhyzicalBody> body, zeus::PhyzicalBody* me) {
-		const auto& pos = body->Position;
-		if (strcmp((const char*)body->InternalData, "rock") == 0)
-		{
-			SetPosition(m_LastPosition);
-		}
-		if (strcmp((const char*)body->InternalData, "bullet") == 0)
-		{
-			// me->IsDead = true;
-			// QUICK_LOG(Trace, "Player is dead by bullet!!!!");
-		}
-	};
 }
 
 float step = 0.0f; // Speed of changing the sprite (animation)

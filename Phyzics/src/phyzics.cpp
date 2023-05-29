@@ -22,35 +22,28 @@ namespace zeus
 		{
 			for (size_t i = 0; i < m_Bodies.size(); i++)
 			{
-				const auto& body = m_Bodies[i];
+				const auto& body1 = m_Bodies[i];
 
-				body->Step(dt);
+				body1->Step(dt);
 
-				if (body == nullptr || body->IsDead)
+				if (body1 == nullptr || body1->IsDead)
 				{
-					const char* data = (const char*)body->InternalData;
-					// std::cout << data << " is dead\n";
+					const char* data = (const char*)body1->InternalData;
 					m_Bodies.erase(m_Bodies.begin() + i);
 					continue;
 				}
 
 				for (const auto& body2 : m_Bodies)
 				{
-					if (body != body2 && body->IsCollide(body2))
+					if (body1 != body2 && body1->IsCollide(body2))
 					{
-						 //std::cout << ((const char*)body->InternalData) << " is collided with " << ((const char*)body2->InternalData) << '\n';
-						body->OnCollision(body2);
-						body2->OnCollision(body);
+						body1->OnCollision(body2);
+						body2->OnCollision(body1);
 					}
 				}
 			}
 		}
 
-		// i++;
-		// if (i >= (int)m_Bodies.size())
-		// {
-		// 	i = 0;
-		// }
 		s_Stat.Bodies = m_Bodies.size();
 		return;
 	}

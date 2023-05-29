@@ -1,5 +1,6 @@
 #include "body.h"
 
+#include <iostream>
 #include <stdexcept>
 
 namespace zeus
@@ -11,8 +12,7 @@ namespace zeus
 			throw std::runtime_error("Runtime Error: colliding with null body");
 		}
 
-		if (CollideFunction != nullptr)
-			CollideFunction(body, this);
+		this->Collision.CollisionBody = body;
 	}
 
 	bool PhyzicalBody::IsCollide(std::shared_ptr<PhyzicalBody> shape)

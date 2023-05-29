@@ -1,8 +1,9 @@
 #include "corepch.h"
 #include "application.h"
-
 #include "window/window_constants.h"
 #include "util/logger.h"
+
+#include <thread>
 
 namespace zeus
 {

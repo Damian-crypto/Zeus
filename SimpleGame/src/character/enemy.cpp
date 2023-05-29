@@ -44,20 +44,22 @@ void HumanEnemy::OnUpdate(float dt)
 {
 	m_Weapon->OnUpdate(dt);
 
-	if (GetPhyzicalBody()->IsDead)
+	auto body = GetPhyzicalBody();
+	if (body->Collision.CollisionBody != nullptr)
 	{
-		IsDead = true;
-	}
-
-	LOG(Info, "%d %s\n", Collided, CollideObject);
-	if (Collided && CollideObject == "rock")
-	{
-		auto& velo = GetVelocity();
-		velo.y = -velo.y;
-		SetVelocity(velo);
-		SetPosition(m_LastPosition);
-		Collided = false;
-		CollideObject = "";
+		const char* bodyName = (const char*)body->Collision.CollisionBody->InternalData;
+		if (strcmp(bodyName, "rock") == 0)
+		{
+			auto& velo = GetVelocity();
+			velo.y = -velo.y;
+			SetVelocity(velo);
+			SetPosition(m_LastPosition);
+			body->Collision.CollisionBody = nullptr;
+		}
+		else if (strcmp(bodyName, "bullet") == 0)
+		{
+			body->IsDead = true;
+		}
 	}
 	else
 	{
