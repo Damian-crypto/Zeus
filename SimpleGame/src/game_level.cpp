@@ -65,7 +65,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 	m_CellSize = m_Serializer->DeserializeInt("cellsize");
 	m_CellGap = m_Serializer->DeserializeDbl("cellgap");
 	
-    const std::function<Tile(const std::string&)> StringToFile = [](const std::string& s) {
+    const std::function<Tile(const std::string&)> StringToTile = [](const std::string& s) {
 		Tile tile;
 		std::vector<int> elements;
 		std::stringstream ss;
@@ -84,7 +84,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		return tile;
     };
 
-    std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", StringToFile);
+    std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", StringToTile);
 
 	// Reading map
 	for (Tile& tile : levelmap)
@@ -103,46 +103,51 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		m_Map.emplace_back(tile);
 	}
 
-	// Reading enemy
-	if (m_Serializer->ReadHeader("enemy1"))
+	// Reading enemies
+	int enemies = m_Serializer->DeserializeInt("enemies");
+	for (int i = 1; i <= enemies; i++)
 	{
-		std::string enemyType = m_Serializer->DeserializeStr("type");
-		EnemyType type = EnemyType::None;
-		if (enemyType == "human")
+		char header[7];
+		sprintf_s(header, "enemy%d", i);
+		if (m_Serializer->ReadHeader(header))
 		{
-			type = EnemyType::Human;
-		}
-		else if (enemyType == "animal")
-		{
-			type = EnemyType::Animal;
-		}
-		else
-		{
-			type = EnemyType::None;
-		}
+			std::string enemyType = m_Serializer->DeserializeStr("type");
+			EnemyType type = EnemyType::None;
+			if (enemyType == "human")
+			{
+				type = EnemyType::Human;
+			}
+			else if (enemyType == "animal")
+			{
+				type = EnemyType::Animal;
+			}
+			else
+			{
+				type = EnemyType::None;
+			}
 
-		if (m_EnemyRegistry == nullptr)
-		{
-			LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
-		}
+			if (m_EnemyRegistry == nullptr)
+			{
+				LOG(Error, "Runtime Error: Enemy registry is not initialized for operation!");
+			}
 
-		// Reading enemy position
-		auto enemy = m_EnemyRegistry->CreateEnemy(type);
+			// Reading enemy position
+			auto enemy = m_EnemyRegistry->CreateEnemy(type);
 
-		const std::function<int(const std::string&)> sToInt = [](const std::string& s) {
-			return std::stoi(s);
-		};
-		std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
-		enemy->SetPosition({ pos[0], pos[1], 0.1f });
-		//m_Enemies.push_back(enemy);
-		
-		// Reading enemy weapon
-		std::string weaponName = m_Serializer->DeserializeStr("weapon");
-		if (weaponName == "gun")
-		{
-			enemy->SetWeapon(WeaponType::Gun);
+			static const std::function<int(const std::string&)> sToInt = [](const std::string& s) {
+				return std::stoi(s);
+			};
+			std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
+			enemy->SetPosition({ pos[0], pos[1], 0.1f });
+
+			// Reading enemy weapon
+			std::string weaponName = m_Serializer->DeserializeStr("weapon");
+			if (weaponName == "gun")
+			{
+				enemy->SetWeapon(WeaponType::Gun);
+			}
+			m_Serializer->EndHeader();
 		}
-		m_Serializer->EndHeader();
 	}
 }
 

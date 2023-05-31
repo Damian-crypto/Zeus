@@ -7,7 +7,7 @@ EnemyRegistry::EnemyRegistry(std::shared_ptr<zeus::TextureManager> texManager)
 	m_TexManager = texManager;
 }
 
-Enemy* EnemyRegistry::CreateEnemy(EnemyType type)
+std::shared_ptr<Enemy> EnemyRegistry::CreateEnemy(EnemyType type)
 {
 	if (m_TexManager == nullptr)
 	{
@@ -23,8 +23,7 @@ Enemy* EnemyRegistry::CreateEnemy(EnemyType type)
 	{
 		case EnemyType::Human:
 		{
-			Enemy* enemy = new HumanEnemy();
-			LOG(Info, "Enemy created at: %p", enemy);
+			std::shared_ptr<Enemy> enemy = std::make_shared<HumanEnemy>();
 			enemy->SetTextureManager(m_TexManager);
 			enemy->SetPosition({ 500.0f, 300.0f, 0.09f });
 
@@ -61,7 +60,6 @@ void EnemyRegistry::OnUpdate(float dt)
 		else
 		{
 			enemy->GetPhyzicalBody()->IsDead = true;
-			delete m_Enemies[i];
 			m_Enemies.erase(m_Enemies.begin() + i);
 		}
 	}

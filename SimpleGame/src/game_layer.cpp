@@ -9,7 +9,6 @@
 
 extern glm::ivec2 platformPos;
 
-Enemy *enemy1, *enemy2;
 GameLayer::GameLayer(const char* name)
 {
 	// Initializing Phyzics engine
@@ -53,16 +52,6 @@ GameLayer::GameLayer(const char* name)
 	lvl1->SetEnemyRegistry(m_EnemyReg);
 	lvl1->GetLevelResources().TexManager = m_TexManager;
 	m_LevelManager.AddLevel(m_CurrentLevel, lvl1);
-
-	// Create new enemy 1
-	enemy1 = m_EnemyReg->CreateEnemy(EnemyType::Human);
-	enemy1->SetPosition({ WIDTH / 2 - 200, HEIGHT / 2 - 150, 0.1f });
-	enemy1->SetWeapon(WeaponType::Gun);
-
-	// Create new enemy 2
-	enemy2 = m_EnemyReg->CreateEnemy(EnemyType::Human);
-	enemy2->SetPosition({ WIDTH / 2 + 200, HEIGHT / 2 + 150, 0.1f });
-	enemy2->SetWeapon(WeaponType::Gun);
 
 	// Initializing Renderer
 	zeus::Renderer::Init();
@@ -233,12 +222,6 @@ void GameLayer::OnUpdate(float dt)
 		float dir = std::atan2(((HEIGHT - m_MousePos.y) - playerPos.y), (m_MousePos.x - playerPos.x));
 		m_Player->Attack(dir);
 	}
-
-	float yFactor = enemy1->GetVelocity().y < 0 ? -1.0f : 1.0f;
-	enemy1->SetVelocity({ 0, yFactor * speed, 0 });
-
-	yFactor = enemy2->GetVelocity().y < 0 ? -1.0f : 1.0f;
-	enemy2->SetVelocity({ 0, yFactor * speed, 0 });
 
 	m_Phyzics->Step(dt);
 	m_Player->OnUpdate(dt);
