@@ -65,7 +65,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 	m_CellSize = m_Serializer->DeserializeInt("cellsize");
 	m_CellGap = m_Serializer->DeserializeDbl("cellgap");
 	
-    const std::function<Tile(const std::string&)> StringToTile = [](const std::string& s) {
+    static const std::function<Tile(const std::string&)> StringToTile = [](const std::string& s) {
 		Tile tile;
 		std::vector<int> elements;
 		std::stringstream ss;
@@ -84,9 +84,14 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		return tile;
     };
 
+	static const std::function<int(const std::string&)> StringToInt = [](const std::string& s) {
+		return std::stoi(s);
+	};
+
     std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", StringToTile);
 
 	// Reading map
+	int x = 0;
 	for (Tile& tile : levelmap)
 	{
 		tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
@@ -96,6 +101,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		{
 			tile.PhysicalBody->InternalData = (void*)"rock";
 			m_Phyzics->AddBody(tile.PhysicalBody);
+			x++;
 		} else {
 			tile.PhysicalBody->InternalData = (void*)"void";
 		}
@@ -107,6 +113,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 	int enemies = m_Serializer->DeserializeInt("enemies");
 	for (int i = 1; i <= enemies; i++)
 	{
+		// Start reading header "enemyX"
 		char header[7];
 		sprintf_s(header, "enemy%d", i);
 		if (m_Serializer->ReadHeader(header))
@@ -133,11 +140,7 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 
 			// Reading enemy position
 			auto enemy = m_EnemyRegistry->CreateEnemy(type);
-
-			static const std::function<int(const std::string&)> sToInt = [](const std::string& s) {
-				return std::stoi(s);
-			};
-			std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", sToInt);
+			std::vector<int> pos = m_Serializer->DeserializeVec<int>("pos", StringToInt);
 			enemy->SetPosition({ pos[0], pos[1], 0.1f });
 
 			// Reading enemy weapon
@@ -146,6 +149,15 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 			{
 				enemy->SetWeapon(WeaponType::Gun);
 			}
+
+			// Reading enemy behaviour
+			if (m_Serializer->HasProperty("behaviour"))
+			{
+				std::vector<int> behaviour = m_Serializer->DeserializeVec<int>("behaviour", StringToInt);
+				enemy->SetBehaviour((Behaviour)behaviour[0]);
+			}
+
+			// End reading header "enemyX"
 			m_Serializer->EndHeader();
 		}
 	}

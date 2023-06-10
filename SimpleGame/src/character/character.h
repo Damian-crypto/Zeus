@@ -10,9 +10,17 @@
 
 enum class WeaponType
 {
+	None,
 	Gun,
 	Axe,
 	Sword
+};
+
+enum class Behaviour
+{
+	None = 0,			// 0 = 0000
+	WalkUpDown = 1,		// 0 = 0001
+	WalkLeftRight = 2	// 1 = 0010
 };
 
 class Character
@@ -22,12 +30,14 @@ protected:
 	glm::vec3 m_Position{ 0.0f };
 	glm::vec3 m_Velocity{ 0.0f };
 	glm::vec3 m_LastPosition { 0.0f };
+	glm::vec3 m_LastVelocity { 0.0f };
 	glm::vec3 m_SpriteCoords{ 0.0f };
 
 	std::shared_ptr<Weapon> m_Weapon = nullptr;
 	std::shared_ptr<zeus::TextureManager> m_TexManager = nullptr;
 
 	Sprite m_Sprite;
+	Behaviour m_Behaviour;
 
 private:
 	std::shared_ptr<zeus::Phyzics> m_Phyzics = nullptr;
@@ -48,6 +58,7 @@ public:
 
 	void SetVelocity(const glm::vec3& velocity) { m_Velocity = velocity; }
 	void SetWeapon(WeaponType type);
+	void SetBehaviour(Behaviour behave);
 	void SetSprite(const Sprite& sprite);
 	void SetSize(const glm::vec2& size) { m_Size = size; }
 	void SetPosition(const glm::vec3 pos) { m_Position = pos; m_PhysicalBody->Position = pos; }

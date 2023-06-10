@@ -9,9 +9,10 @@ Character::Character()
 	m_PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
 	m_PhysicalBody->Type = zeus::BodyShape::Quad;
 	m_PhysicalBody->Position = m_Position;
-	m_PhysicalBody->InternalData = (void*)"player";
+	m_PhysicalBody->InternalData = (void*)"dummy body";
 	m_PhysicalBody->SetWidth(90.0f);
 	m_PhysicalBody->SetHeight(100.0f);
+	m_Behaviour = Behaviour::None;
 }
 
 float step = 0.0f; // Speed of changing the sprite (animation)
@@ -51,7 +52,7 @@ void Character::Move(glm::vec3 velocity)
 	m_PhysicalBody->Position = m_Position;
 	m_Weapon->SetPosition(m_Position);
 
-	step += 0.1f;
+	step += 0.03f;
 	if (step > 2.8f)
 	{
 		step = 0.0f;
@@ -67,6 +68,15 @@ void Character::SetWeapon(WeaponType type)
 		m_Weapon->SetPhyzicsEngine(m_Phyzics);
 		break;
 	}
+}
+
+void Character::SetBehaviour(Behaviour behave)
+{
+	m_Behaviour = behave;
+	if (m_Behaviour == Behaviour::WalkUpDown)
+		SetVelocity({ 0, 1, 0 });
+	else if (m_Behaviour == Behaviour::WalkLeftRight)
+		SetVelocity({ 1, 0, 0 });
 }
 
 void Character::SetPhyzicsEngine(std::shared_ptr<zeus::Phyzics> phyzics)

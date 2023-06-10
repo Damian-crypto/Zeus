@@ -48,10 +48,15 @@ void HumanEnemy::OnUpdate(float dt)
 	if (body->Collision.CollisionBody != nullptr)
 	{
 		const char* bodyName = (const char*)body->Collision.CollisionBody->InternalData;
+		if (m_Behaviour == Behaviour::WalkLeftRight)
+			LOG(Info, "Collided with %s", bodyName);
 		if (strcmp(bodyName, "rock") == 0)
 		{
 			auto& velo = GetVelocity();
-			velo.y = -velo.y;
+			if (m_Behaviour == Behaviour::WalkUpDown)
+				velo.y = -velo.y;
+			else if (m_Behaviour == Behaviour::WalkLeftRight)
+				velo.x = -velo.x;
 			SetVelocity(velo);
 			SetPosition(m_LastPosition);
 			body->Collision.CollisionBody = nullptr;
@@ -60,10 +65,15 @@ void HumanEnemy::OnUpdate(float dt)
 		{
 			body->IsDead = true;
 		}
+		else
+		{
+			Move();
+		}
 	}
 	else
 	{
 		m_LastPosition = GetPosition();
+		Move();
 	}
 
 	glm::vec3 targetPos = m_Target->GetPosition();
@@ -74,6 +84,8 @@ void HumanEnemy::OnUpdate(float dt)
 	glm::vec2 size = GetSize();
 	zeus::Rectangle area(pos.x - size.x / 2, pos.y, size.x, size.y);
 
+	if (m_Velocity.x != 0 || m_Velocity.y != 0 || m_Velocity.z != 0)
+		m_LastVelocity = m_Velocity;
 	if (area.IsIntersectingWith(targetArea, 100))
 	{
 		float dir = atan2(targetPos.y - pos.y, targetPos.x - pos.x);
@@ -81,6 +93,6 @@ void HumanEnemy::OnUpdate(float dt)
 	}
 	else
 	{
-		Move();
+		SetVelocity(m_LastVelocity);
 	}
 }

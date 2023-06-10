@@ -34,7 +34,7 @@ GameLayer::GameLayer(const char* name)
 	m_Player = std::make_shared<Player>();
 	m_Player->SetPhyzicsEngine(m_Phyzics);
 	m_Player->SetTextureManager(m_TexManager);
-	m_Player->SetPosition({ WIDTH / 2 + 100, HEIGHT / 2, 0.11f });
+	m_Player->SetPosition({ WIDTH + 100, HEIGHT / 2, 0.11f });
 
 	Sprite PlayerSprite;
 	PlayerSprite.Coords = { 24, 16, 2 };
