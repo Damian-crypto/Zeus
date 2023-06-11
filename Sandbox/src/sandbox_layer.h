@@ -250,17 +250,6 @@ public:
 				if (mouseButtons[MOUSE_LEFT] && m_DragTile.IsActive)
 				{
 					auto& levelMap = activeLevel->GetLevelMap();
-#if 0
-					if (id >= levelMap.size())
-					{
-						SandboxLevel::Tile _tile;
-						_tile.Position = { m_CursorPos.x, m_CursorPos.y, 0 };
-						_tile.TexCoords = m_DragTile.Sprite.Coordinates;
-						_tile.Type = SandboxLevel::TileType::None;
-						activeLevel->AddTile(_tile);
-					}
-#endif
-
 					if (id < (int)levelMap.size())
 					{
 						levelMap[id].TexCoords = m_DragTile.Sprite.Coordinates;
@@ -347,6 +336,11 @@ public:
 				if (tile.Type != (SandboxLevel::TileType)item_current_idx)
 				{
 					tile.Type = (SandboxLevel::TileType)item_current_idx;
+				}
+
+				if (ImGui::Button("Apply to all"))
+				{
+					activeLevel->ChangeAllTiles(tile.TexCoords, (SandboxLevel::TileType)item_current_idx);
 				}
 			}
 

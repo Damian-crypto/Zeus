@@ -91,7 +91,6 @@ void BeginLevel::LoadLevel(const std::string& filepath)
     std::vector<Tile> levelmap = m_Serializer->DeserializeVec<Tile>("levelmap", StringToTile);
 
 	// Reading map
-	int x = 0;
 	for (Tile& tile : levelmap)
 	{
 		tile.PhysicalBody = std::make_shared<zeus::PhyzicalBody>();
@@ -101,7 +100,6 @@ void BeginLevel::LoadLevel(const std::string& filepath)
 		{
 			tile.PhysicalBody->InternalData = (void*)"rock";
 			m_Phyzics->AddBody(tile.PhysicalBody);
-			x++;
 		} else {
 			tile.PhysicalBody->InternalData = (void*)"void";
 		}

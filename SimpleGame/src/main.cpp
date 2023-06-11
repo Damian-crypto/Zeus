@@ -8,7 +8,7 @@
 int main()
 {
 	zeus::ApplicationProperties props;
-	props.Title = "City Game";
+	props.Title = "Survival";
 	props.Width = WIDTH;
 	props.Height = HEIGHT;
 	props.GameUI = true;
@@ -17,7 +17,7 @@ int main()
 	auto app = new zeus::Application(props);
 	app->Init();
 	app->SetVSync(true);
-	zeus::Layer* layer = new GameLayer("city_game");
+	zeus::Layer* layer = new GameLayer("zeus_survival");
 	app->PushLayer(layer);
 	app->Run();
 }

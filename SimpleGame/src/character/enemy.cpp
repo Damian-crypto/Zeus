@@ -48,8 +48,6 @@ void HumanEnemy::OnUpdate(float dt)
 	if (body->Collision.CollisionBody != nullptr)
 	{
 		const char* bodyName = (const char*)body->Collision.CollisionBody->InternalData;
-		if (m_Behaviour == Behaviour::WalkLeftRight)
-			LOG(Info, "Collided with %s", bodyName);
 		if (strcmp(bodyName, "rock") == 0)
 		{
 			auto& velo = GetVelocity();

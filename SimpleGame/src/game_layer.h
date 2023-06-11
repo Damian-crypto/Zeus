@@ -8,8 +8,8 @@
 
 #include <string>
 
-static const int WIDTH	= 1024;
-static const int HEIGHT = 640;
+static const int WIDTH	= 1280;
+static const int HEIGHT = 720;
 
 const glm::vec4 RED		= { 1.0f, 0.0f, 0.0f, 1.0f };
 const glm::vec4 BLUE	= { 0.0f, 0.0f, 1.0f, 1.0f };
