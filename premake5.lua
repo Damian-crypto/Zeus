@@ -22,13 +22,3 @@ group "Engine"
 	include "Zeus"
 	include "Zeus/vendor/GLFW"
 group ""
-
-group "Tools"
-	include "Phyzics"
-	include "Zerializer"
-group ""
-
-group "Test"
-	include "Sandbox"
-	include "SimpleGame"
-group""
