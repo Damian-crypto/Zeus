@@ -2,7 +2,7 @@ include "Definitions.lua"
 
 workspace "Zeus"
 	architecture "x64"
-	startproject "Sandbox"
+	startproject "ZeusNavigator"
 
 	configurations
 	{
@@ -32,3 +32,5 @@ group "Test"
 	include "Sandbox"
 	include "SimpleGame"
 group""
+
+include "ZeusNavigator"
