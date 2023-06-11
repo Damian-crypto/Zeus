@@ -2,7 +2,7 @@ include "Definitions.lua"
 
 workspace "Zeus"
 	architecture "x64"
-	startproject "Sandbox"
+	startproject "ZeusNavigator"
 
 	configurations
 	{
@@ -22,3 +22,5 @@ group "Engine"
 	include "Zeus"
 	include "Zeus/vendor/GLFW"
 group ""
+
+include "ZeusNavigator"
